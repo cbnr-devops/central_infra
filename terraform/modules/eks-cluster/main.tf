@@ -40,8 +40,6 @@ module "eks" {
   subnet_ids = module.vpc.private_subnets
 
   enable_irsa = true
-  cluster_encryption_config = []
-
   cluster_endpoint_public_access = true
 
   eks_managed_node_groups = {
