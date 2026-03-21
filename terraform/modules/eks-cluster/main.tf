@@ -42,6 +42,8 @@ module "eks" {
   enable_irsa = true
   cluster_endpoint_public_access = true
 
+  create_kms_key = false
+
   eks_managed_node_groups = {
     default = {
       instance_types = var.instance_types
