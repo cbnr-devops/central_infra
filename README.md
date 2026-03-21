@@ -9,10 +9,12 @@
       terraform state rm '<resource>'
     ```
 2. Managing the auth issues by adding respective blocks to the eks module is not working. So removed that part and added the permissions manually.
- - '''bash
-     aws eks update-kubeconfig --region ap-southeast-2 --name dev-cluster
-   ''' 
+ - Run:
+    '''bash
+      aws eks update-kubeconfig --region ap-southeast-2 --name dev-cluster
+    ''' 
 3. Adding access entry to reach kube-apiserver:
+ - Run:
    '''bash
      aws eks create-access-entry \
       --cluster-name dev-cluster \
