@@ -42,6 +42,16 @@ module "eks" {
   enable_irsa = true
   cluster_endpoint_public_access = true
 
+  manage_aws_auth_configmap = true
+  
+  aws_auth_users = [
+    {
+      userarn  = "arn:aws:iam::312018064574:user/ec2-cli-user"
+      username = "ec2-cli-user"
+      groups   = ["system:masters"]
+    }
+  ]
+
   create_kms_key = false
   cluster_encryption_config = []
 
