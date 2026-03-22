@@ -62,13 +62,84 @@ kubectl get pods
       Pod list returned
 ```
 
-### Step by step
+### Authentication step (WHO are you?)
 
-1. **kubectl sends the request** — `~/.kube/config` tells kubectl where to send the request and how to authenticate (it runs `aws eks get-token` behind the scenes)
-2. **EKS authenticates you** — The API server confirms: "This is AWS IAM user `ec2-cli-user`." But Kubernetes doesn't natively understand IAM users, so it needs a translation layer.
-3. **The `aws-auth` ConfigMap translates** — Looks up your IAM ARN and maps it to a Kubernetes username and group
-4. **Kubernetes RBAC authorizes** — Checks if your group (`system:masters`) has permission to list pods. `system:masters` is superadmin, so the answer is yes.
-5. **Pod list returned**
+```
+kubectl get pods
+       │
+       ▼
+   ~/.kube/config says: run `aws eks get-token`
+       │
+       ▼
+   AWS STS verifies your IAM credentials (access key + secret key)
+       │
+       ▼
+   Returns a short-lived token (valid ~15 minutes)
+       │
+       ▼
+   kubectl sends this token to the EKS API server
+       │
+       ▼
+   EKS API server calls AWS IAM: "Is this token valid?"
+       │
+       ▼
+   AWS IAM responds: "Yes, this is ec2-cli-user"
+```
+
+At this point, the API server knows **who you are** — but that doesn't mean you can do anything. You're authenticated, not authorized.
+
+### Which account does `aws eks get-token` use?
+
+The token is generated for whichever **AWS IAM identity is currently configured** on the machine where you run it. AWS resolves the identity using a credential chain — checked in this order of priority:
+
+1. **Environment variables** — `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` (if set)
+2. **AWS CLI profile** — `~/.aws/credentials` (configured via `aws configure`)
+3. **EC2 Instance Role** — IAM role attached to the EC2 instance itself
+
+In our setup, the EC2 instance (`ubuntu@ip-172-31-38-97`) has `ec2-cli-user` credentials configured via `aws configure`, so `aws eks get-token` generates a token for `arn:aws:iam::312018064574:user/ec2-cli-user`.
+
+To verify which identity is being used at any time, run:
+
+```bash
+aws sts get-caller-identity
+```
+
+This shows the account ID, ARN, and user/role name. That's the same identity that `aws eks get-token` generates a token for, and the same ARN that gets looked up in the `aws-auth` ConfigMap.
+
+### Authorization step (CAN you do this?)
+
+```
+   API server now knows: this is ec2-cli-user
+       │
+       ▼
+   Looks up aws-auth ConfigMap in kube-system namespace
+       │
+       ▼
+   Finds: ec2-cli-user → Kubernetes group "system:masters"
+       │
+       ▼
+   Checks Kubernetes RBAC: does "system:masters" have
+   permission to "list" resource "pods"?
+       │
+       ▼
+   system:masters is bound to the built-in ClusterRole
+   "cluster-admin" which allows ALL verbs on ALL resources
+       │
+       ▼
+   Result: ALLOWED ✓ → returns the pod list
+```
+
+### Key difference between the two steps
+
+| | Authentication | Authorization |
+|---|---|---|
+| **Question** | Who are you? | What can you do? |
+| **Handled by** | AWS IAM + STS | Kubernetes RBAC |
+| **Proof** | Token from `aws eks get-token` | `aws-auth` ConfigMap + RBAC roles |
+| **Can fail independently** | Yes — bad credentials | Yes — valid user but no permissions |
+
+- **Without authentication:** "I don't know who you are" → request rejected
+- **Without authorization (no `aws-auth` entry):** "I know who you are, but you have no permissions" → request rejected
 
 ---
 
@@ -83,7 +154,9 @@ Makes the Kubernetes API server reachable from the public internet. Anyone with 
 
 ### `manage_aws_auth_configmap = true`
 
-Tells the EKS Terraform module to manage the `aws-auth` ConfigMap. This is good practice — managing it through Terraform means it's version-controlled, reproducible, and won't drift.
+This tells the EKS Terraform module: **"I want you to create and manage the `aws-auth` ConfigMap in the `kube-system` namespace for me."**
+
+Without this, the ConfigMap either doesn't exist or isn't managed by Terraform — meaning you'd have to manually create it with `kubectl`. Managing it through Terraform is good practice because it's version-controlled, reproducible, and won't drift.
 
 ### `aws_auth_users` block
 
@@ -97,7 +170,35 @@ aws_auth_users = [
 ]
 ```
 
-Grants the IAM user `ec2-cli-user` full cluster admin access. Issues with this approach:
+This is the content that gets written into the `aws-auth` ConfigMap. It creates this mapping:
+
+```
+AWS IAM world                                          Kubernetes world
+─────────────                                          ────────────────
+arn:aws:iam::312018064574:user/ec2-cli-user  →  username: ec2-cli-user
+                                                 group: system:masters
+```
+
+Each field explained:
+
+| Field | Value | What it means |
+|---|---|---|
+| `userarn` | `arn:aws:iam::312018064574:user/ec2-cli-user` | The AWS IAM identity to match — when someone authenticates with this ARN, apply this mapping |
+| `username` | `ec2-cli-user` | The Kubernetes username assigned to this person (shows up in audit logs) |
+| `groups` | `["system:masters"]` | The Kubernetes group(s) this user belongs to — `system:masters` = full cluster admin |
+
+**How it connects to `kubectl get pods`:**
+
+1. On the EC2 instance, `aws configure` is set up with `ec2-cli-user` credentials
+2. `kubectl get pods` triggers `aws eks get-token` which generates a token for `arn:aws:iam::312018064574:user/ec2-cli-user`
+3. EKS API server receives the token, confirms the identity with AWS IAM
+4. Looks up that ARN in the `aws-auth` ConfigMap → finds this entry
+5. Maps you to Kubernetes user `ec2-cli-user` in group `system:masters`
+6. `system:masters` has full access → request allowed
+
+**Without this block**, step 4 fails — your ARN isn't in the ConfigMap, so Kubernetes doesn't know what permissions to give you, and every request is denied.
+
+**Issues with this approach for production:**
 
 1. **`system:masters` is too broad** — equivalent of root
 2. **Hardcoded IAM user** — better to use IAM roles instead (temporary credentials, more flexible)
