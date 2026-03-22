@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: shared-ingress-staging
+  namespace: default
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  ingressClassName: nginx
+  rules:
+    - http:
+        paths:
+          - path: /solar(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: solar-system-service
+                port:
+                  number: 80
+          - path: /starfleet(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: starship-fleet-service
+                port:
+                  number: 80
