@@ -1,7 +1,7 @@
 variable "azure_region" {
   description = "Azure region"
   type        = string
-  default     = "australiaeast"
+  default     = "australiasoutheast"
 }
 
 variable "vnet_cidr" {
