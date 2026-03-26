@@ -27,7 +27,7 @@ module "acr" {
   env                 = "staging"
   resource_group_name = module.resource_group.name
   location            = module.resource_group.location
-  repositories        = ["dev-images", "staging-images"]
+  repositories        = ["staging-images"]
 }
 
 module "blob_storage" {
@@ -35,5 +35,5 @@ module "blob_storage" {
   env                 = "staging"
   resource_group_name = module.resource_group.name
   location            = module.resource_group.location
-  containers          = ["dev-tfstate", "staging-tfstate"]
+  containers          = ["staging-tfstate"]
 }
