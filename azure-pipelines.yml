@@ -50,7 +50,6 @@ stages:
               - template: templates/terraform-apply.yml@templates
                 parameters:
                   workingDir: $(basePath)/dev
-                  backendKey: dev/terraform.tfstate
 
   - ${{ if eq(parameters.env, 'staging') }}:
       - stage: TerraformApplyStaging
@@ -64,7 +63,6 @@ stages:
               - template: templates/terraform-apply.yml@templates
                 parameters:
                   workingDir: $(basePath)/staging
-                  backendKey: staging/terraform.tfstate
 
   - ${{ if eq(parameters.env, 'all') }}:
       - stage: TerraformApplyDev
@@ -78,7 +76,6 @@ stages:
               - template: templates/terraform-apply.yml@templates
                 parameters:
                   workingDir: $(basePath)/dev
-                  backendKey: dev/terraform.tfstate
 
       - stage: TerraformApplyStaging
         displayName: Terraform Apply - Staging
@@ -91,4 +88,3 @@ stages:
               - template: templates/terraform-apply.yml@templates
                 parameters:
                   workingDir: $(basePath)/staging
-                  backendKey: staging/terraform.tfstate
