@@ -21,3 +21,19 @@ module "aks" {
   subnet_id           = module.vnet.private_subnet_id
   vm_size             = var.vm_size
 }
+
+module "acr" {
+  source              = "../../modules/acr"
+  env                 = "dev"
+  resource_group_name = module.resource_group.name
+  location            = module.resource_group.location
+  repositories        = ["dev-images", "staging-images"]
+}
+
+module "blob_storage" {
+  source              = "../../modules/blob-storage"
+  env                 = "dev"
+  resource_group_name = module.resource_group.name
+  location            = module.resource_group.location
+  containers          = ["dev-tfstate", "staging-tfstate"]
+}
