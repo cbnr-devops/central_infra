@@ -4,6 +4,7 @@ pipeline {
     agent any
 
     parameters {
+        choice(name: 'CLOUD', choices: ['aws', 'azure'], description: 'Cloud Provider')
         choice(name: 'ENV', choices: ['dev', 'staging', 'all'], description: 'Environment')
     }
 
@@ -17,16 +18,17 @@ pipeline {
         stage('Terraform Apply') {
             steps {
                 script {
+                    def basePath = "terraform/${params.CLOUD}/envs"
                     switch(params.ENV) {
                         case 'dev':
-                            terraformApply("terraform/envs/dev")
+                            terraformApply("${basePath}/dev")
                             break
                         case 'staging':
-                            terraformApply("terraform/envs/staging")
+                            terraformApply("${basePath}/staging")
                             break
                         case 'all':
-                            terraformApply("terraform/envs/dev")
-                            terraformApply("terraform/envs/staging")
+                            terraformApply("${basePath}/dev")
+                            terraformApply("${basePath}/staging")
                             break
                     }
                 }
