@@ -1,0 +1,90 @@
+trigger:
+  - main
+
+resources:
+  repositories:
+    - repository: templates
+      type: git
+      name: AZDO-templates
+
+parameters:
+  - name: cloud
+    displayName: Cloud Provider
+    type: string
+    default: aws
+    values:
+      - aws
+      - azure
+
+  - name: env
+    displayName: Environment
+    type: string
+    default: dev
+    values:
+      - dev
+      - staging
+      - all
+
+variables:
+  basePath: "terraform/${{ parameters.cloud }}/envs"
+
+stages:
+  - stage: Checkout
+    displayName: Checkout Code
+    jobs:
+      - job: Checkout
+        pool:
+          vmImage: "ubuntu-latest"
+        steps:
+          - template: templates/checkout.yml@templates
+
+  - ${{ if eq(parameters.env, 'dev') }}:
+      - stage: TerraformApplyDev
+        displayName: Terraform Apply - Dev
+        dependsOn: Checkout
+        jobs:
+          - job: ApplyDev
+            pool:
+              vmImage: "ubuntu-latest"
+            steps:
+              - template: templates/terraform-apply.yml@templates
+                parameters:
+                  workingDir: $(basePath)/dev
+
+  - ${{ if eq(parameters.env, 'staging') }}:
+      - stage: TerraformApplyStaging
+        displayName: Terraform Apply - Staging
+        dependsOn: Checkout
+        jobs:
+          - job: ApplyStaging
+            pool:
+              vmImage: "ubuntu-latest"
+            steps:
+              - template: templates/terraform-apply.yml@templates
+                parameters:
+                  workingDir: $(basePath)/staging
+
+  - ${{ if eq(parameters.env, 'all') }}:
+      - stage: TerraformApplyDev
+        displayName: Terraform Apply - Dev
+        dependsOn: Checkout
+        jobs:
+          - job: ApplyDev
+            pool:
+              vmImage: "ubuntu-latest"
+            steps:
+              - template: templates/terraform-apply.yml@templates
+                parameters:
+                  workingDir: $(basePath)/dev
+
+      - stage: TerraformApplyStaging
+        displayName: Terraform Apply - Staging
+        dependsOn: TerraformApplyDev
+        jobs:
+          - job: ApplyStaging
+            pool:
+              vmImage: "ubuntu-latest"
+            steps:
+              - template: templates/terraform-apply.yml@templates
+                parameters:
+                  workingDir: $(basePath)/staging
