@@ -1,7 +1,7 @@
 variable "azure_region" {
   description = "Azure region"
   type        = string
-  default     = "australiaeast"
+  default     = "australiasoutheast"
 }
 
 variable "vnet_cidr" {
@@ -13,5 +13,5 @@ variable "vnet_cidr" {
 variable "vm_size" {
   description = "AKS node VM size"
   type        = string
-  default     = "Standard_B2s"
+  default     = "Standard_B2ats_v2"
 }
