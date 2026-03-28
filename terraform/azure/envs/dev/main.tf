@@ -22,14 +22,6 @@ module "aks" {
   vm_size             = var.vm_size
 }
 
-module "acr" {
-  source              = "../../modules/acr"
-  env                 = "dev"
-  resource_group_name = module.resource_group.name
-  location            = module.resource_group.location
-  repositories        = ["dev-images"]
-}
-
 module "blob_storage" {
   source              = "../../modules/blob-storage"
   env                 = "dev"

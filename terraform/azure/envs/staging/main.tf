@@ -22,13 +22,6 @@ module "aks" {
   vm_size             = var.vm_size
 }
 
-module "acr" {
-  source              = "../../modules/acr"
-  env                 = "staging"
-  resource_group_name = module.resource_group.name
-  location            = module.resource_group.location
-  repositories        = ["staging-images"]
-}
 
 module "blob_storage" {
   source              = "../../modules/blob-storage"
