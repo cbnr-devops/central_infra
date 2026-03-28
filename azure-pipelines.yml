@@ -11,7 +11,7 @@ parameters:
   - name: cloud
     displayName: Cloud Provider
     type: string
-    default: aws
+    default: azure
     values:
       - aws
       - azure
@@ -34,7 +34,7 @@ stages:
     jobs:
       - job: Checkout
         pool:
-          vmImage: "ubuntu-latest"
+          name: "sample-project"
         steps:
           - template: templates/checkout.yml@templates
 
@@ -45,7 +45,7 @@ stages:
         jobs:
           - job: ApplyDev
             pool:
-              vmImage: "ubuntu-latest"
+              name: "sample-project"
             steps:
               - template: templates/terraform-apply.yml@templates
                 parameters:
@@ -58,7 +58,7 @@ stages:
         jobs:
           - job: ApplyStaging
             pool:
-              vmImage: "ubuntu-latest"
+              name: "sample-project"
             steps:
               - template: templates/terraform-apply.yml@templates
                 parameters:
@@ -71,7 +71,7 @@ stages:
         jobs:
           - job: ApplyDev
             pool:
-              vmImage: "ubuntu-latest"
+              name: "sample-project"
             steps:
               - template: templates/terraform-apply.yml@templates
                 parameters:
@@ -83,7 +83,7 @@ stages:
         jobs:
           - job: ApplyStaging
             pool:
-              vmImage: "ubuntu-latest"
+              name: "sample-project"
             steps:
               - template: templates/terraform-apply.yml@templates
                 parameters:
