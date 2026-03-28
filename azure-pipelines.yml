@@ -4,8 +4,9 @@ trigger:
 resources:
   repositories:
     - repository: templates
-      type: git
-      name: AZDO-templates
+      type: github
+      name: cbnr-devops/AZDO-templates
+      endpoint: cbnr-devops
 
 parameters:
   - name: cloud
