@@ -1,7 +1,7 @@
 terraform {
   backend "azurerm" {
     resource_group_name  = "central-infra-tf-state-rg"
-    storage_account_name = "centralinfratfstate"
+    storage_account_name = "solarinfratfstate"
     container_name       = "dev-tfstate"
     key                  = "dev/terraform.tfstate"
   }
