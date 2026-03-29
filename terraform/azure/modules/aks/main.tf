@@ -13,7 +13,7 @@ resource "azurerm_kubernetes_cluster" "this" {
     vm_size        = var.vm_size
     vnet_subnet_id = var.subnet_id
 
-    auto_scaling_enabled = true
+    enable_auto_scaling = true
   }
 
   identity {
