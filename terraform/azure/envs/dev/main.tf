@@ -22,10 +22,3 @@ module "aks" {
   vm_size             = var.vm_size
 }
 
-module "blob_storage" {
-  source              = "../../modules/blob-storage"
-  env                 = "dev"
-  resource_group_name = module.resource_group.name
-  location            = module.resource_group.location
-  containers          = ["dev-tfstate"]
-}
