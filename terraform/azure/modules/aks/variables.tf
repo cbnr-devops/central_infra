@@ -26,5 +26,5 @@ variable "subnet_id" {
 variable "vm_size" {
   description = "VM size for AKS nodes"
   type        = string
-  default     = "Standard_B2ats_v2"
+  default     = "Standard_B4als_v2"
 }
