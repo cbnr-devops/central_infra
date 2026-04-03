@@ -28,3 +28,9 @@ variable "vm_size" {
   type        = string
   default     = "Standard_B4als_v2"
 }
+
+variable "max_pods" {
+  description = "Maximum number of pods per node"
+  type        = number
+  default     = 100
+}

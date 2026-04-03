@@ -20,5 +20,5 @@ module "aks" {
   location            = module.resource_group.location
   subnet_id           = module.vnet.private_subnet_id
   vm_size             = var.vm_size
+  max_pods            = 100
 }
-
