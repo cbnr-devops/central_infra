@@ -22,3 +22,30 @@ module "aks" {
   vm_size             = var.vm_size
   max_pods            = 100
 }
+
+module "postgresql" {
+  source              = "../../modules/postgresql"
+  env                 = "dev"
+  resource_group_name = module.resource_group.name
+  location            = module.resource_group.location
+  admin_username      = data.azurerm_key_vault_secret.pg_username.value
+  admin_password      = data.azurerm_key_vault_secret.pg_password.value  
+  aks_subnet_cidr_start = "10.0.1.0"
+  aks_subnet_cidr_end   = "10.0.1.255"
+}
+
+
+data "azurerm_key_vault" "this" {
+  name                = "skssolarsecrets"
+  resource_group_name = "VisualStudioOnline-696441FDFCD6415E97BD6B658AFB5291"
+}
+
+data "azurerm_key_vault_secret" "pg_password" {
+  name         = "postgres-password"
+  key_vault_id = data.azurerm_key_vault.this.id
+}
+
+data "azurerm_key_vault_secret" "pg_username" {
+  name         = "postgres-username"
+  key_vault_id = data.azurerm_key_vault.this.id
+}
