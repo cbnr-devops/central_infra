@@ -29,3 +29,42 @@ resource "azurerm_postgresql_flexible_server_firewall_rule" "aks" {
   start_ip_address = var.aks_subnet_cidr_start
   end_ip_address   = var.aks_subnet_cidr_end
 }
+
+resource "azurerm_private_endpoint" "postgresql" {
+  name                = "${var.env}-postgresql-pe"
+  resource_group_name = var.resource_group_name
+  location            = var.location
+  subnet_id           = var.private_endpoint_subnet_id
+
+  private_service_connection {
+    name                           = "${var.env}-postgresql-psc"
+    private_connection_resource_id = azurerm_postgresql_flexible_server.this.id
+    subresource_names              = ["postgresqlServer"]
+    is_manual_connection           = false
+  }
+
+  private_dns_zone_group {
+    name                 = "postgresql-dns-zone-group"
+    private_dns_zone_ids = [azurerm_private_dns_zone.postgresql.id]
+  }
+}
+
+resource "azurerm_private_dns_zone" "postgresql" {
+  name                = "privatelink.postgres.database.azure.com"
+  resource_group_name = var.resource_group_name
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "postgresql" {
+  name                  = "${var.env}-postgresql-dns-link"
+  resource_group_name   = var.resource_group_name
+  private_dns_zone_name = azurerm_private_dns_zone.postgresql.name
+  virtual_network_id    = var.vnet_id
+  registration_enabled  = false
+}
+
+resource "azurerm_postgresql_flexible_server_firewall_rule" "deny_public" {
+  server_id  = azurerm_postgresql_flexible_server.this.id
+  name       = "deny-all-public"
+  start_ip_address = "0.0.0.0"
+  end_ip_address   = "0.0.0.0"
+}

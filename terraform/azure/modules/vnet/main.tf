@@ -58,3 +58,12 @@ resource "azurerm_subnet_nat_gateway_association" "private" {
   subnet_id      = azurerm_subnet.private.id
   nat_gateway_id = azurerm_nat_gateway.this.id
 }
+
+resource "azurerm_subnet" "private_endpoint" {
+  name                 = "${var.env}-pe-subnet"
+  resource_group_name  = var.resource_group_name
+  virtual_network_name = azurerm_virtual_network.this.name
+  address_prefixes     = ["10.0.3.0/24"]
+
+  private_endpoint_network_policies = "Disabled"
+}

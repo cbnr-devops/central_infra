@@ -51,3 +51,13 @@ variable "postgres_version" {
   type        = string
   default     = "16"
 }
+
+variable "private_endpoint_subnet_id" {
+  description = "Subnet ID where the private endpoint will be created"
+  type        = string
+}
+
+variable "vnet_id" {
+  description = "VNet ID to link the private DNS zone"
+  type        = string
+}

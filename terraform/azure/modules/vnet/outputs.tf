@@ -9,3 +9,7 @@ output "private_subnet_id" {
 output "public_subnet_id" {
   value = azurerm_subnet.public.id
 }
+
+output "private_endpoint_subnet_id" {
+  value = azurerm_subnet.private_endpoint.id
+}
