@@ -30,9 +30,7 @@ module "postgresql" {
   location            = module.resource_group.location
   admin_username      = data.azurerm_key_vault_secret.pg_username.value
   admin_password      = data.azurerm_key_vault_secret.pg_password.value  
-  aks_subnet_cidr_start = "10.0.1.0"
-  aks_subnet_cidr_end   = "10.0.1.255"
-  private_endpoint_subnet_id = module.vnet.private_endpoint_subnet_id 
+  private_endpoint_subnet_id = module.vnet.private_endpoint_subnet_id
   vnet_id                    = module.vnet.vnet_id
 }
 
