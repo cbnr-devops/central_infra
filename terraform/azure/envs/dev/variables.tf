@@ -15,3 +15,13 @@ variable "vm_size" {
   type        = string
   default     = "Standard_B4als_v2"
 }
+
+variable "aks_subnet_cidr_start" {
+  description = "Start IP of AKS subnet for PostgreSQL firewall"
+  type        = string
+}
+
+variable "aks_subnet_cidr_end" {
+  description = "End IP of AKS subnet for PostgreSQL firewall"
+  type        = string
+}

@@ -24,6 +24,16 @@ variable "admin_password" {
   sensitive   = true
 }
 
+variable "aks_subnet_cidr_start" {
+  description = "Start IP of AKS subnet range for firewall rule"
+  type        = string
+}
+
+variable "aks_subnet_cidr_end" {
+  description = "End IP of AKS subnet range for firewall rule"
+  type        = string
+}
+
 variable "sku_name" {
   description = "PostgreSQL SKU (compute tier)"
   type        = string

@@ -25,6 +25,13 @@ resource "azurerm_postgresql_flexible_server_database" "planets" {
   collation = "en_US.utf8"
 }
 
+resource "azurerm_postgresql_flexible_server_firewall_rule" "aks" {
+  name      = "allow-aks"
+  server_id = azurerm_postgresql_flexible_server.this.id
+  start_ip_address = var.aks_subnet_cidr_start
+  end_ip_address   = var.aks_subnet_cidr_end
+}
+
 resource "azurerm_private_endpoint" "postgresql" {
   name                = "${var.env}-postgresql-pe"
   resource_group_name = var.resource_group_name
