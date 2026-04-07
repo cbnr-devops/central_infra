@@ -30,6 +30,11 @@ resource "azurerm_kubernetes_cluster" "this" {
   oidc_issuer_enabled       = true
   workload_identity_enabled = true
 
+  oms_agent {
+    log_analytics_workspace_id      = var.log_analytics_workspace_id
+    msi_auth_for_monitoring_enabled = true
+  }
+  
   tags = {
     Environment = var.env
     Project     = "central-infra"

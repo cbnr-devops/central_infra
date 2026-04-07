@@ -34,3 +34,8 @@ variable "max_pods" {
   type        = number
   default     = 100
 }
+
+variable "log_analytics_workspace_id" {
+  description = "Log Analytics Workspace ID for AMA/OMS agent"
+  type        = string
+}

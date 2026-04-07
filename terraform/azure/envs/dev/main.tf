@@ -21,6 +21,7 @@ module "aks" {
   subnet_id           = module.vnet.private_subnet_id
   vm_size             = var.vm_size
   max_pods            = 100
+  log_analytics_workspace_id = data.azurerm_log_analytics_workspace.this.id
 }
 
 module "postgresql" {
@@ -50,3 +51,7 @@ data "azurerm_key_vault_secret" "pg_username" {
   key_vault_id = data.azurerm_key_vault.this.id
 }
 
+data "azurerm_log_analytics_workspace" "this" {
+  name                = "central-logs-workspace"   
+  resource_group_name = "central-monitoring-rg"     
+}
