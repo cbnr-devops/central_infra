@@ -15,7 +15,7 @@ resource "azurerm_postgresql_flexible_server" "this" {
     Environment = var.env
   }
 
-  public_network_access_enabled = false
+  public_network_access_enabled = true
 }
 
 resource "azurerm_postgresql_flexible_server_database" "planets" {
