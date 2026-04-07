@@ -9,7 +9,7 @@ resource "azurerm_dashboard_grafana" "this" {
   resource_group_name               = var.resource_group_name
   location                          = var.location
   sku                               = "Standard"
-  grafana_major_version             = 10
+  grafana_major_version             = 11
   public_network_access_enabled     = true
 
   azure_monitor_workspace_integrations {
