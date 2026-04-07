@@ -35,6 +35,11 @@ resource "azurerm_kubernetes_cluster" "this" {
     msi_auth_for_monitoring_enabled = true
   }
   
+  monitor_metrics {
+    annotations_allowed = null
+    labels_allowed      = null
+  }
+  
   tags = {
     Environment = var.env
     Project     = "central-infra"

@@ -35,6 +35,13 @@ module "postgresql" {
   vnet_id                    = module.vnet.vnet_id
 }
 
+module "monitoring" {
+  source              = "../../modules/monitoring"
+  env                 = "dev"
+  resource_group_name = module.resource_group.name
+  location            = module.resource_group.location
+  aks_cluster_id      = module.aks.cluster_id
+}
 
 data "azurerm_key_vault" "this" {
   name                = "skssolarsecrets"
