@@ -57,9 +57,3 @@ resource "azurerm_private_dns_zone_virtual_network_link" "postgresql" {
   registration_enabled  = false
 }
 
-resource "azurerm_postgresql_flexible_server_firewall_rule" "deny_public" {
-  server_id  = azurerm_postgresql_flexible_server.this.id
-  name       = "deny-all-public"
-  start_ip_address = "0.0.0.0"
-  end_ip_address   = "0.0.0.0"
-}
