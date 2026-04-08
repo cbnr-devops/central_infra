@@ -16,7 +16,7 @@ variable "location" {
 variable "sku" {
   description = "SKU for the container registry"
   type        = string
-  default     = "Basic"
+  default     = "Premium"
 }
 
 variable "repositories" {
