@@ -12,7 +12,7 @@ resource "azurerm_kubernetes_cluster" "this" {
     max_count      = 2
     vm_size        = var.vm_size
     vnet_subnet_id = var.subnet_id
-    enable_auto_scaling = true
+    auto_scaling_enabled = true
     max_pods            = var.max_pods
     temporary_name_for_rotation = "tmpdefault"
   }
