@@ -27,6 +27,17 @@ resource "azurerm_role_assignment" "grafana_monitor_reader" {
   principal_id         = azurerm_dashboard_grafana.this.identity[0].principal_id
 }
 
+resource "azurerm_role_assignment" "grafana_logs_reader" {
+  scope                = data.azurerm_log_analytics_workspace.central.id
+  role_definition_name = "Log Analytics Reader"
+  principal_id         = azapi_resource.grafana.identity[0].principal_id
+}
+
+data "azurerm_log_analytics_workspace" "central" {
+  name                = "central-logs-workspace"
+  resource_group_name = "central-monitoring-rg"
+}
+
 resource "azurerm_monitor_data_collection_rule" "prometheus" {
   name                = "${var.env}-prometheus-dcr"
   resource_group_name = var.resource_group_name
