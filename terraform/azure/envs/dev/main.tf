@@ -24,6 +24,19 @@ module "aks" {
   log_analytics_workspace_id = data.azurerm_log_analytics_workspace.this.id
 }
 
+
+module "acr" {
+  source = "../../modules/acr"
+  env                        = var.env
+  resource_group_name        = "VisualStudioOnline-696441FDFCD6415E97BD6B658AFB5291"
+  location                   = var.location
+  sku                        = "Premium"
+  repositories               = var.acr_repositories
+  enable_private_endpoint    = true
+  vnet_id                    = module.network.vnet_id
+  private_endpoint_subnet_id = module.network.pe_subnet_id
+}
+
 module "postgresql" {
   source              = "../../modules/postgresql"
   env                 = "dev"

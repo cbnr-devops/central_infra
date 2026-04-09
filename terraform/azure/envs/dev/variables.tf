@@ -15,3 +15,15 @@ variable "vm_size" {
   type        = string
   default     = "Standard_B4als_v2"
 }
+
+variable "env" {
+  description = "Environment name"
+  type        = string
+  default     = "dev"
+}
+
+variable "acr_repositories" {
+  description = "List of repository names to create in ACR"
+  type        = list(string)
+  default     = ["solar-system", "starship-fleet"]
+}
