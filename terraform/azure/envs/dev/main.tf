@@ -33,8 +33,8 @@ module "acr" {
   sku                        = "Premium"
   repositories               = var.acr_repositories
   enable_private_endpoint    = true
-  vnet_id                    = module.network.vnet_id
-  private_endpoint_subnet_id = module.network.pe_subnet_id
+  vnet_id                    = module.vnet.vnet_id
+  private_endpoint_subnet_id = module.vnet.private_endpoint_subnet_id
 }
 
 module "postgresql" {

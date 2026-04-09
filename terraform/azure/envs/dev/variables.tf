@@ -27,3 +27,9 @@ variable "acr_repositories" {
   type        = list(string)
   default     = ["solar-system", "starship-fleet"]
 }
+
+variable "location" {
+  description = "Azure region"
+  type        = string
+  default     = "australiaeast"
+}
