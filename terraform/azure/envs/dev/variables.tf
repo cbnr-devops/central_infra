@@ -33,3 +33,9 @@ variable "location" {
   type        = string
   default     = "australiaeast"
 }
+
+variable "agent_vm_ips" {
+  description = "Public IPs of build agent VMs to whitelist on ACR"
+  type        = list(string)
+  default     = []
+}

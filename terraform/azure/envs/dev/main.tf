@@ -35,6 +35,7 @@ module "acr" {
   enable_private_endpoint    = true
   vnet_id                    = module.vnet.vnet_id
   private_endpoint_subnet_id = module.vnet.private_endpoint_subnet_id
+  allowed_ips                = var.agent_vm_ips
 }
 
 module "postgresql" {

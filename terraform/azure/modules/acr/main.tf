@@ -5,8 +5,23 @@ resource "azurerm_container_registry" "this" {
   sku                 = var.sku
   admin_enabled       = false
 
-  public_network_access_enabled = var.enable_private_endpoint ? false : true
+  public_network_access_enabled = var.enable_private_endpoint && length(var.allowed_ips) == 0 ? false : true
   network_rule_bypass_option    = var.enable_private_endpoint ? "AzureServices" : null
+
+  dynamic "network_rule_set" {
+    for_each = length(var.allowed_ips) > 0 ? [1] : []
+    content {
+      default_action = "Deny"
+
+      dynamic "ip_rule" {
+        for_each = var.allowed_ips
+        content {
+          action   = "Allow"
+          ip_range = ip_rule.value
+        }
+      }
+    }
+  }
 
   tags = {
     Environment = var.env

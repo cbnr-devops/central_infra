@@ -41,3 +41,9 @@ variable "private_endpoint_subnet_id" {
   type        = string
   default     = null
 }
+
+variable "allowed_ips" {
+  description = "List of public IP addresses or CIDR ranges allowed to access ACR (e.g. build agent IPs)"
+  type        = list(string)
+  default     = []
+}
