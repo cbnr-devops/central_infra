@@ -1,0 +1,32 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: planets-migration
+  namespace: dev
+spec:
+  ttlSecondsAfterFinished: 300   # auto-cleanup after 5 mins
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: migrate
+        image: skssolar/solar-system:latest   # use your app image (has planets.json + python)
+        command: ["python", "migrate.py"]
+        env:
+        - name: DB_HOST
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: POSTGRES_HOST
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: POSTGRES_USER
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: POSTGRES_PASSWORD
+        - name: DB_NAME
+          value: "planets"
