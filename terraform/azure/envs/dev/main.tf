@@ -24,20 +24,6 @@ module "aks" {
   log_analytics_workspace_id = data.azurerm_log_analytics_workspace.this.id
 }
 
-
-module "acr" {
-  source = "../../modules/acr"
-  env                        = var.env
-  resource_group_name        = "VisualStudioOnline-696441FDFCD6415E97BD6B658AFB5291"
-  location                   = var.location
-  sku                        = "Premium"
-  repositories               = var.acr_repositories
-  enable_private_endpoint    = true
-  vnet_id                    = module.vnet.vnet_id
-  private_endpoint_subnet_id = module.vnet.private_endpoint_subnet_id
-  allowed_ips                = var.agent_vm_ips
-}
-
 module "postgresql" {
   source              = "../../modules/postgresql"
   env                 = "dev"
@@ -57,9 +43,17 @@ module "monitoring" {
   aks_cluster_id      = module.aks.cluster_id
 }
 
+resource "azurerm_log_analytics_workspace" "this" {
+  name                = "central-${var.env}-logs"
+  location            = module.resource_group.location
+  resource_group_name = module.resource_group.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
 data "azurerm_key_vault" "this" {
   name                = "skssolarsecrets"
-  resource_group_name = "VisualStudioOnline-696441FDFCD6415E97BD6B658AFB5291"
+  resource_group_name = "central-shared-rg"
 }
 
 data "azurerm_key_vault_secret" "pg_password" {
@@ -70,9 +64,4 @@ data "azurerm_key_vault_secret" "pg_password" {
 data "azurerm_key_vault_secret" "pg_username" {
   name         = "postgres-username"
   key_vault_id = data.azurerm_key_vault.this.id
-}
-
-data "azurerm_log_analytics_workspace" "this" {
-  name                = "central-logs-workspace"   
-  resource_group_name = "central-monitoring-rg"     
 }

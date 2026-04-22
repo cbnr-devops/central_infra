@@ -23,6 +23,7 @@ parameters:
     default: dev
     values:
       - dev
+      - shared
       - staging
       - all
 
@@ -39,53 +40,16 @@ stages:
         steps:
           - template: templates/checkout.yml@templates
 
-  - ${{ if eq(parameters.env, 'dev') }}:
-      - stage: TerraformApplyDev
-        displayName: Terraform Apply - Dev
-        dependsOn: Checkout
+  - ${{ each item in fromJson('[{"name":"dev","dependsOn":"Checkout"},{"name":"shared","dependsOn":"TerraformApplydev"},{"name":"staging","dependsOn":"TerraformApplyshared"}]') }}:
+      - stage: TerraformApply${{ item.name }}
+        displayName: Terraform Apply - ${{ upper(item.name) }}
+        dependsOn: ${{ item.dependsOn }}
+        condition: and(succeeded(), or(eq('${{ parameters.env }}', '${{ item.name }}'), eq('${{ parameters.env }}', 'all')))
         jobs:
-          - job: ApplyDev
+          - job: Apply${{ item.name }}
             pool:
               name: "sample-project"
             steps:
               - template: templates/terraform-apply.yml@templates
                 parameters:
-                  workingDir: $(basePath)/dev
-
-  - ${{ if eq(parameters.env, 'staging') }}:
-      - stage: TerraformApplyStaging
-        displayName: Terraform Apply - Staging
-        dependsOn: Checkout
-        jobs:
-          - job: ApplyStaging
-            pool:
-              name: "sample-project"
-            steps:
-              - template: templates/terraform-apply.yml@templates
-                parameters:
-                  workingDir: $(basePath)/staging
-
-  - ${{ if eq(parameters.env, 'all') }}:
-      - stage: TerraformApplyDev
-        displayName: Terraform Apply - Dev
-        dependsOn: Checkout
-        jobs:
-          - job: ApplyDev
-            pool:
-              name: "sample-project"
-            steps:
-              - template: templates/terraform-apply.yml@templates
-                parameters:
-                  workingDir: $(basePath)/dev
-
-      - stage: TerraformApplyStaging
-        displayName: Terraform Apply - Staging
-        dependsOn: TerraformApplyDev
-        jobs:
-          - job: ApplyStaging
-            pool:
-              name: "sample-project"
-            steps:
-              - template: templates/terraform-apply.yml@templates
-                parameters:
-                  workingDir: $(basePath)/staging
+                  workingDir: $(basePath)/${{ item.name }}

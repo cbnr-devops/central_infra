@@ -22,20 +22,8 @@ variable "env" {
   default     = "dev"
 }
 
-variable "acr_repositories" {
-  description = "List of repository names to create in ACR"
-  type        = list(string)
-  default     = ["solar-system", "starship-fleet"]
-}
-
 variable "location" {
   description = "Azure region"
   type        = string
   default     = "australiaeast"
-}
-
-variable "agent_vm_ips" {
-  description = "Public IPs of build agent VMs to whitelist on ACR"
-  type        = list(string)
-  default     = []
 }
