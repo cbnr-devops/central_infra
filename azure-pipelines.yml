@@ -26,6 +26,16 @@ parameters:
       - shared
       - staging
       - all
+  
+  - name: environments
+    type: object
+    default:
+      - name: dev
+        dependsOn: Checkout
+      - name: shared
+        dependsOn: TerraformApplydev
+      - name: staging
+        dependsOn: TerraformApplyshared
 
 variables:
   basePath: "terraform/${{ parameters.cloud }}/envs"
@@ -40,7 +50,7 @@ stages:
         steps:
           - template: templates/checkout.yml@templates
 
-  - ${{ each item in fromJson('[{"name":"dev","dependsOn":"Checkout"},{"name":"shared","dependsOn":"TerraformApplydev"},{"name":"staging","dependsOn":"TerraformApplyshared"}]') }}:
+  - ${{ each item in parameters.environments }}:
       - stage: TerraformApply${{ item.name }}
         displayName: Terraform Apply - ${{ upper(item.name) }}
         dependsOn: ${{ item.dependsOn }}
