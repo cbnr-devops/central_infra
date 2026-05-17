@@ -7,7 +7,7 @@ variable "location" {
 variable "key_vault_name" {
   description = "Shared Key Vault name used by dev/staging"
   type        = string
-  default     = "skssolarsecrets"
+  default     = "skssecrets"
 }
 
 variable "acr_repositories" {
