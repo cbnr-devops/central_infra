@@ -56,32 +56,32 @@ resource "azurerm_private_dns_zone" "acr" {
   resource_group_name = module.resource_group.name
 
   tags = {
-    Environment = "dev"
+    Environment = "staging"
     Project     = "central-infra"
   }
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "acr" {
-  name                  = "link-acr-dev-vnet"
+  name                  = "link-acr-staging-vnet"
   resource_group_name   = module.resource_group.name
   private_dns_zone_name = azurerm_private_dns_zone.acr.name
   virtual_network_id    = module.vnet.vnet_id
   registration_enabled  = false
 
   tags = {
-    Environment = "dev"
+    Environment = "staging"
     Project     = "central-infra"
   }
 }
 
 resource "azurerm_private_endpoint" "acr" {
-  name                = "pe-central-dev-acr"
+  name                = "pe-central-staging-acr"
   location            = module.resource_group.location
   resource_group_name = module.resource_group.name
   subnet_id           = module.vnet.private_endpoint_subnet_id
 
   private_service_connection {
-    name                           = "psc-central-dev-acr"
+    name                           = "psc-central-staging-acr"
     private_connection_resource_id = data.azurerm_container_registry.shared.id
     subresource_names              = ["registry"]
     is_manual_connection           = false
@@ -93,13 +93,13 @@ resource "azurerm_private_endpoint" "acr" {
   }
 
   tags = {
-    Environment = "dev"
+    Environment = "staging"
     Project     = "central-infra"
   }
 }
 
 data "azurerm_key_vault" "this" {
-  name                = "skssolarsecrets"
+  name                = "skssecrets"
   resource_group_name = "central-shared-rg"
 }
 

@@ -99,7 +99,7 @@ resource "azurerm_private_endpoint" "acr" {
 }
 
 data "azurerm_key_vault" "this" {
-  name                = "skssolarsecrets"
+  name                = "skssecrets"
   resource_group_name = "central-shared-rg"
 }
 
