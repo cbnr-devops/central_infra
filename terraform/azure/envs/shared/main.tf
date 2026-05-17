@@ -15,25 +15,13 @@ resource "azurerm_key_vault" "this" {
   soft_delete_retention_days    = 7
   purge_protection_enabled      = true
   public_network_access_enabled = true
-  enable_rbac_authorization     = true
+  rbac_authorization_enabled = true
 
   tags = {
     Environment = "shared"
     Project     = "central-infra"
   }
 }
-
-data "azurerm_virtual_network" "dev" {
-  name                = var.dev_vnet_name
-  resource_group_name = var.dev_vnet_resource_group_name
-}
-
-data "azurerm_subnet" "dev_private_endpoint" {
-  name                 = var.dev_private_endpoint_subnet_name
-  virtual_network_name = data.azurerm_virtual_network.dev.name
-  resource_group_name  = var.dev_vnet_resource_group_name
-}
-
 
 module "acr" {
   source = "../../modules/acr"
@@ -42,8 +30,6 @@ module "acr" {
   location                   = module.resource_group.location
   sku                        = "Premium"
   repositories               = var.acr_repositories
-  enable_private_endpoint    = true
-  vnet_id                    = data.azurerm_virtual_network.dev.id
-  private_endpoint_subnet_id = data.azurerm_subnet.dev_private_endpoint.id
+  enable_private_endpoint    = false
   allowed_ips                = var.agent_vm_ips
 }

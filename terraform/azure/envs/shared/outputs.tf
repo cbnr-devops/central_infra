@@ -8,11 +8,6 @@ output "acr_id" {
   value       = module.acr.acr_id
 }
 
-output "acr_private_endpoint_ip" {
-  description = "Private IP of the ACR private endpoint"
-  value       = module.acr.private_endpoint_ip
-}
-
 output "key_vault_name" {
   description = "Shared Key Vault name"
   value       = azurerm_key_vault.this.name
