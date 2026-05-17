@@ -51,6 +51,53 @@ resource "azurerm_log_analytics_workspace" "this" {
   retention_in_days   = 30
 }
 
+resource "azurerm_private_dns_zone" "acr" {
+  name                = "privatelink.azurecr.io"
+  resource_group_name = module.resource_group.name
+
+  tags = {
+    Environment = "dev"
+    Project     = "central-infra"
+  }
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "acr" {
+  name                  = "link-acr-dev-vnet"
+  resource_group_name   = module.resource_group.name
+  private_dns_zone_name = azurerm_private_dns_zone.acr.name
+  virtual_network_id    = module.vnet.vnet_id
+  registration_enabled  = false
+
+  tags = {
+    Environment = "dev"
+    Project     = "central-infra"
+  }
+}
+
+resource "azurerm_private_endpoint" "acr" {
+  name                = "pe-central-dev-acr"
+  location            = module.resource_group.location
+  resource_group_name = module.resource_group.name
+  subnet_id           = module.vnet.private_endpoint_subnet_id
+
+  private_service_connection {
+    name                           = "psc-central-dev-acr"
+    private_connection_resource_id = data.azurerm_container_registry.shared.id
+    subresource_names              = ["registry"]
+    is_manual_connection           = false
+  }
+
+  private_dns_zone_group {
+    name                 = "acr-dns-group"
+    private_dns_zone_ids = [azurerm_private_dns_zone.acr.id]
+  }
+
+  tags = {
+    Environment = "dev"
+    Project     = "central-infra"
+  }
+}
+
 data "azurerm_key_vault" "this" {
   name                = "skssolarsecrets"
   resource_group_name = "central-shared-rg"
@@ -64,4 +111,9 @@ data "azurerm_key_vault_secret" "pg_password" {
 data "azurerm_key_vault_secret" "pg_username" {
   name         = "postgres-username"
   key_vault_id = data.azurerm_key_vault.this.id
+}
+
+data "azurerm_container_registry" "shared" {
+  name                = "skssolar"
+  resource_group_name = "central-shared-rg"
 }
