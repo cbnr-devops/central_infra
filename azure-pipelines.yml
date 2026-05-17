@@ -30,12 +30,12 @@ parameters:
   - name: environments
     type: object
     default:
-      - name: dev
-        dependsOn: Checkout
       - name: shared
-        dependsOn: TerraformApplydev
-      - name: staging
+        dependsOn: Checkout
+      - name: dev
         dependsOn: TerraformApplyshared
+      - name: staging
+        dependsOn: TerraformApplydev
 
 variables:
   basePath: "terraform/${{ parameters.cloud }}/envs"
