@@ -54,7 +54,11 @@ stages:
       - stage: TerraformApply${{ item.name }}
         displayName: Terraform Apply - ${{ upper(item.name) }}
         dependsOn: ${{ item.dependsOn }}
-        condition: and(succeeded(), or(eq('${{ parameters.env }}', '${{ item.name }}'), eq('${{ parameters.env }}', 'all')))
+        condition: >-
+          and(
+            in(dependencies['${{ item.dependsOn }}'].result, 'Succeeded', 'Skipped'),
+            or(eq('${{ parameters.env }}', '${{ item.name }}'), eq('${{ parameters.env }}', 'all'))
+          )
         jobs:
           - job: Apply${{ item.name }}
             pool:
