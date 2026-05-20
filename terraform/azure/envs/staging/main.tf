@@ -21,7 +21,7 @@ module "aks" {
   subnet_id           = module.vnet.private_subnet_id
   vm_size             = var.vm_size
   max_pods            = 100
-  log_analytics_workspace_id = data.azurerm_log_analytics_workspace.this.id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.this.id
 }
 
 module "postgresql" {
