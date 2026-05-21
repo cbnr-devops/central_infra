@@ -63,7 +63,7 @@ resource "azurerm_subnet" "private_endpoint" {
   name                 = "${var.env}-pe-subnet"
   resource_group_name  = var.resource_group_name
   virtual_network_name = azurerm_virtual_network.this.name
-  address_prefixes     = ["10.0.3.0/24"]
+  address_prefixes     = [cidrsubnet(var.vnet_cidr, 8, 3)]
 
   private_endpoint_network_policies = "Disabled"
 }
