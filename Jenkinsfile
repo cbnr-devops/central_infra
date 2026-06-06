@@ -15,21 +15,31 @@ pipeline {
             }
         }
 
+        stage('Terraform Format') {
+            steps {
+                script {
+                    runTerraformForEnv(params.CLOUD, params.ENV) { path ->
+                        terraformFmt(path)
+                    }
+                }
+            }
+        }
+
+        stage('Terraform Validate') {
+            steps {
+                script {
+                    runTerraformForEnv(params.CLOUD, params.ENV) { path ->
+                        terraformValidate(path)
+                    }
+                }
+            }
+        }
+
         stage('Terraform Apply') {
             steps {
                 script {
-                    def basePath = "terraform/${params.CLOUD}/envs"
-                    switch(params.ENV) {
-                        case 'dev':
-                            terraformApply("${basePath}/dev")
-                            break
-                        case 'staging':
-                            terraformApply("${basePath}/staging")
-                            break
-                        case 'all':
-                            terraformApply("${basePath}/dev")
-                            terraformApply("${basePath}/staging")
-                            break
+                    runTerraformForEnv(params.CLOUD, params.ENV) { path ->
+                        terraformApply(path)
                     }
                 }
             }
