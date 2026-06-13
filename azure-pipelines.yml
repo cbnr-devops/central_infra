@@ -49,6 +49,36 @@ stages:
           name: "sample-project"
         steps:
           - template: templates/checkout.yml@templates
+  
+  - stage: TerraformFormat
+    displayName: Terraform Format Check
+    dependsOn: Checkout
+    condition: succeeded()
+    jobs:
+      - job: Format
+        pool:
+          name: "sample-project"
+        steps:
+          - template: templates/checkout.yml@templates
+          - script: |
+              terraform fmt -check -recursive $(basePath)
+            displayName: Terraform Format Check
+
+  - stage: TerraformValidate
+    displayName: Terraform Validate
+    dependsOn: TerraformFormat
+    condition: succeeded()
+    jobs:
+      - ${{ each item in parameters.environments }}:
+        - job: Validate${{ item.name }}
+          displayName: Validate - ${{ upper(item.name) }}
+          pool:
+            name: "sample-project"
+          steps:
+            - template: templates/checkout.yml@templates
+            - template: templates/terraform-validate.yml@templates
+              parameters:
+                workingDir: $(basePath)/${{ item.name }}
 
   - ${{ each item in parameters.environments }}:
       - stage: TerraformApply${{ item.name }}
