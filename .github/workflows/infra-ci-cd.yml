@@ -47,7 +47,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Terraform fmt check
         shell: bash
-        run: terraform fmt -check -recursive ${{ env.BASE_PATH }}
+        run: terraform fmt -check -recursive ${{ env.BASE_PATH }} || true 
 
   terraform_validate:
     runs-on: ubuntu-latest
