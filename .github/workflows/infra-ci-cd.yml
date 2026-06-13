@@ -60,20 +60,20 @@ jobs:
           working_dir: ${{ env.BASE_PATH }}/${{ matrix.env_name }}
 
   terraform_apply:
-  runs-on: ubuntu-latest
-  needs: terraform_validate
-  strategy:
-    matrix:
-      env_name: [shared, dev, staging]
+    runs-on: ubuntu-latest
+    needs: terraform_validate
+    strategy:
+      matrix:
+        env_name: [shared, dev, staging]
 
-  if: >
-    needs.terraform_validate.result == 'success' &&
-    (${{ github.event.inputs.env }} == matrix.env_name || ${{ github.event.inputs.env }} == 'all')
+    if: >
+      needs.terraform_validate.result == 'success' &&
+      (${{ github.event.inputs.env }} == matrix.env_name || ${{ github.event.inputs.env }} == 'all')
 
-  steps:
-    - uses: actions/checkout@v4
+    steps:
+      - uses: actions/checkout@v4
 
-    - name: Terraform apply ${{ matrix.env_name }}
-      uses: cbnr-devops/GitHub-reusable-workflows/.github/actions/terraform-apply@v1
-      with:
-        working_dir: ${{ env.BASE_PATH }}/${{ matrix.env_name }}
+      - name: Terraform apply ${{ matrix.env_name }}
+        uses: cbnr-devops/GitHub-reusable-workflows/.github/actions/terraform-apply@v1
+        with:
+          working_dir: ${{ env.BASE_PATH }}/${{ matrix.env_name }}
