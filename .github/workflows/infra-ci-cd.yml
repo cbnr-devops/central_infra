@@ -39,8 +39,12 @@ jobs:
     runs-on: ubuntu-latest
     needs: checkout
     steps:
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.5
+          terraform_wrapper: false
       - uses: actions/checkout@v4
-
       - name: Terraform fmt check
         shell: bash
         run: terraform fmt -check -recursive ${{ env.BASE_PATH }}
