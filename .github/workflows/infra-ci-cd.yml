@@ -26,8 +26,8 @@ on:
           - all
 
 env:
-  CLOUD: ${{ github.event.inputs.cloud }}                  
-  BASE_PATH: terraform/${{ github.event.inputs.cloud }}/envs
+  CLOUD: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.cloud || 'aws' }}                  
+  BASE_PATH: terraform/${{ github.event_name == 'workflow_dispatch' && github.event.inputs.cloud || 'aws' }}/envs
 
 jobs:
   checkout:
