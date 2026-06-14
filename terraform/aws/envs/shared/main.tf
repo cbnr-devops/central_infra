@@ -20,6 +20,7 @@ module "network" {
   public_subnet_cidrs  = var.public_subnet_cidrs
   private_subnet_cidrs = var.private_subnet_cidrs
   azs                  = var.azs
+  enable_nat_gateway = false
 }
 
 module "ecr" {

@@ -18,7 +18,6 @@ resource "aws_vpc" "this" {
   })
 }
 
-# Internet gateway for public subnets
 resource "aws_internet_gateway" "this" {
   vpc_id = aws_vpc.this.id
 
@@ -27,7 +26,6 @@ resource "aws_internet_gateway" "this" {
   })
 }
 
-# Public subnets
 resource "aws_subnet" "public" {
   for_each = {
     for idx, cidr in var.public_subnet_cidrs :
@@ -45,7 +43,6 @@ resource "aws_subnet" "public" {
   })
 }
 
-# Private subnets
 resource "aws_subnet" "private" {
   for_each = {
     for idx, cidr in var.private_subnet_cidrs :
@@ -62,7 +59,6 @@ resource "aws_subnet" "private" {
   })
 }
 
-# Public route table
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.this.id
 
@@ -84,7 +80,6 @@ resource "aws_route_table_association" "public" {
   route_table_id = aws_route_table.public.id
 }
 
-# Optional NAT gateway + private route tables
 resource "aws_eip" "nat" {
   count = var.enable_nat_gateway ? 1 : 0
   vpc   = true
