@@ -34,7 +34,7 @@ resource "aws_subnet" "public" {
 
   vpc_id                  = aws_vpc.this.id
   cidr_block              = each.value
-  availability_zone       = var.azs[tonumber(each.key)]
+  availability_zone       = var.azs[tonumber(each.key) % length(var.azs)]
   map_public_ip_on_launch = true
 
   tags = merge(local.common_tags, {
@@ -51,7 +51,7 @@ resource "aws_subnet" "private" {
 
   vpc_id            = aws_vpc.this.id
   cidr_block        = each.value
-  availability_zone = var.azs[tonumber(each.key)]
+  availability_zone = var.azs[tonumber(each.key) % length(var.azs)]
 
   tags = merge(local.common_tags, {
     Name = "central-${var.env}-private-${each.key}"
