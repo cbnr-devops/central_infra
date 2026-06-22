@@ -45,11 +45,9 @@ module "network" {
   env      = var.env
   vpc_cidr = var.vpc_cidr
 
-  azs = [var.az]
+  azs = var.azs
 
-  public_subnet_cidrs = [
-    var.public_subnet_cidr,
-  ]
+  public_subnet_cidrs = var.public_subnet_cidrs
 
   private_subnet_cidrs = [
     var.eks_subnet_cidr,
@@ -71,7 +69,7 @@ module "eks" {
   cluster_version = var.eks_version
   vpc_id          = module.network.vpc_id
 
-  private_subnet_ids = [module.network.private_subnet_ids[0]]
+  private_subnet_ids = module.network.private_subnet_ids
 
   desired_capacity = var.eks_node_desired_size
   min_size         = var.eks_node_min_size
@@ -90,7 +88,7 @@ module "rds_postgres" {
   env    = var.env
   vpc_id = module.network.vpc_id
 
-  private_subnet_ids = [module.network.private_subnet_ids[1]]
+  private_subnet_ids = module.network.private_subnet_ids
 
   db_secret_name = var.db_secret_name
 

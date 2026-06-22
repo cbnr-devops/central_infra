@@ -16,17 +16,16 @@ variable "vpc_cidr" {
   default     = "10.1.0.0/16"
 }
 
-variable "az" {
-  description = "Single AZ to use for dev"
-  type        = string
-  # example: "ap-southeast-2a"
-  default = "ap-southeast-2a"
+variable "azs" {
+  description = "Availability zones for dev subnets (EKS and RDS require at least two)"
+  type        = list(string)
+  default     = ["ap-southeast-2a", "ap-southeast-2b"]
 }
 
-variable "public_subnet_cidr" {
-  description = "CIDR for the public subnet"
-  type        = string
-  default     = "10.1.0.0/24"
+variable "public_subnet_cidrs" {
+  description = "CIDR blocks for public subnets (one per AZ)"
+  type        = list(string)
+  default     = ["10.1.0.0/24", "10.1.1.0/24"]
 }
 
 variable "eks_subnet_cidr" {
