@@ -54,11 +54,19 @@ resource "aws_security_group" "this" {
   })
 }
 
+data "aws_rds_engine_version" "postgres" {
+  engine = "postgres"
+  preferred_versions = distinct(concat(
+    [var.engine_version],
+    ["16.8", "16.6", "16.4", "16.2", "15.12", "15.10", "15.8"]
+  ))
+}
+
 resource "aws_db_instance" "this" {
   identifier = "central-${var.env}-postgres"
 
   engine            = "postgres"
-  engine_version    = var.engine_version
+  engine_version    = data.aws_rds_engine_version.postgres.version
   instance_class    = var.instance_class
   db_name           = local.db_name
   username          = local.db_username

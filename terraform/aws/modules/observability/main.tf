@@ -30,7 +30,6 @@ resource "aws_iam_policy" "adot_amp_policy" {
 locals {
   oidc_provider_url         = replace(var.oidc_provider_arn, "arn:aws:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/", "")
   amp_remote_write_endpoint = "https://aps-workspaces.${var.region}.amazonaws.com/workspaces/${aws_prometheus_workspace.this.id}/api/v1/remote_write"
-  loki_s3_endpoint          = "s3.${var.region}.amazonaws.com"
 }
 
 resource "aws_iam_role" "adot_irsa_role" {
@@ -214,6 +213,7 @@ resource "helm_release" "adot_collector" {
         }
 
         extensions = {
+          health_check = {}
           sigv4auth = {
             region  = var.region
             service = "aps"
@@ -221,7 +221,7 @@ resource "helm_release" "adot_collector" {
         }
 
         service = {
-          extensions = ["sigv4auth"]
+          extensions = ["health_check", "sigv4auth"]
           pipelines = {
             metrics = {
               receivers = ["prometheus"]
@@ -243,10 +243,15 @@ resource "helm_release" "loki" {
   version    = "5.42.0"
 
   create_namespace = true
+  timeout          = 900
 
   values = [
     yamlencode({
       deploymentMode = "SingleBinary"
+
+      minio = {
+        enabled = false
+      }
 
       serviceAccount = {
         create = true
@@ -259,40 +264,39 @@ resource "helm_release" "loki" {
       loki = {
         auth_enabled = false
 
-        schema_config = {
+        commonConfig = {
+          replication_factor = 1
+        }
+
+        schemaConfig = {
           configs = [
             {
-              from         = "2023-01-01"
-              store        = "boltdb-shipper"
-              object_store = "aws"
-              schema       = "v11"
+              from         = "2024-04-01"
+              store        = "tsdb"
+              object_store = "s3"
+              schema       = "v13"
               index = {
-                prefix = "index_"
+                prefix = "loki_index_"
                 period = "24h"
               }
             }
           ]
         }
 
-        storage_config = {
-          aws = {
-            s3               = "s3://${aws_s3_bucket.loki.bucket}"
-            endpoint         = local.loki_s3_endpoint
-            region           = var.region
-            s3forcepathstyle = true
+        storage = {
+          type = "s3"
+          bucketNames = {
+            chunks = aws_s3_bucket.loki.bucket
+            ruler  = aws_s3_bucket.loki.bucket
           }
-
-          boltdb_shipper = {
-            shared_store           = "aws"
-            active_index_directory = "/var/loki/index"
-            cache_location         = "/var/loki/cache"
+          s3 = {
+            region = var.region
           }
         }
+      }
 
-        compactor = {
-          working_directory = "/var/loki/compactor"
-          shared_store      = "aws"
-        }
+      singleBinary = {
+        replicas = 1
       }
 
       persistence = {
