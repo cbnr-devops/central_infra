@@ -43,6 +43,7 @@ module "eks" {
   env            = var.env
   cluster_name   = var.eks_cluster_name
   cluster_version = var.eks_version
+  vpc_id          = module.network.vpc_id
 
   private_subnet_ids = [module.network.private_subnet_ids[0]]
 
