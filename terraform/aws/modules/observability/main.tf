@@ -145,15 +145,28 @@ resource "aws_iam_role_policy_attachment" "loki_irsa_attachment" {
 resource "helm_release" "adot_collector" {
   name       = "aws-otel-collector"
   namespace  = "observability"
-  chart      = "aws-otel-collector"
-  repository = "https://aws-observability.github.io/aws-otel-helm-chart"
-  version    = "0.31.0"
+  chart      = "opentelemetry-collector"
+  repository = "https://open-telemetry.github.io/opentelemetry-helm-charts"
+  version    = "0.111.1"
 
   create_namespace = true
 
   values = [
     yamlencode({
       mode = "deployment"
+
+      image = {
+        repository = "amazon/aws-otel-collector"
+        tag        = "v0.37.0"
+      }
+
+      command = {
+        name = "awscollector"
+      }
+
+      clusterRole = {
+        create = true
+      }
 
       serviceAccount = {
         create = true
@@ -286,6 +299,29 @@ resource "helm_release" "loki" {
         enabled = true
         size    = "10Gi"
       }
+
+      gateway = {
+        enabled = true
+      }
+
+      monitoring = {
+        selfMonitoring = {
+          enabled = false
+          grafanaAgent = {
+            installOperator = false
+          }
+        }
+        lokiCanary = {
+          enabled = false
+        }
+        serviceMonitor = {
+          enabled = false
+        }
+      }
+
+      test = {
+        enabled = false
+      }
     })
   ]
 }
@@ -299,6 +335,8 @@ resource "helm_release" "alloy" {
   version    = "0.4.0"
 
   create_namespace = false
+
+  depends_on = [helm_release.loki]
 
   values = [
     yamlencode({
@@ -352,6 +390,8 @@ resource "helm_release" "grafana" {
 
   create_namespace = true
 
+  depends_on = [helm_release.loki, helm_release.adot_collector]
+
   values = [
     yamlencode({
       adminUser     = "admin"
@@ -372,27 +412,30 @@ resource "helm_release" "grafana" {
       }
 
       datasources = {
-        datasources = [
-          {
-            name      = "AMP"
-            type      = "prometheus"
-            access    = "proxy"
-            isDefault = true
-            url       = "https://aps-workspaces.${var.region}.amazonaws.com/workspaces/${aws_prometheus_workspace.this.id}"
-            jsonData = {
-              httpMethod   = "POST"
-              sigV4Auth    = true
-              sigV4Region  = var.region
-              sigV4Service = "aps"
+        "datasources.yaml" = {
+          apiVersion = 1
+          datasources = [
+            {
+              name      = "AMP"
+              type      = "prometheus"
+              access    = "proxy"
+              isDefault = true
+              url       = "https://aps-workspaces.${var.region}.amazonaws.com/workspaces/${aws_prometheus_workspace.this.id}"
+              jsonData = {
+                httpMethod   = "POST"
+                sigV4Auth    = true
+                sigV4Region  = var.region
+                sigV4Service = "aps"
+              }
+            },
+            {
+              name   = "Loki"
+              type   = "loki"
+              access = "proxy"
+              url    = "http://loki-gateway.logging.svc.cluster.local"
             }
-          },
-          {
-            name   = "Loki"
-            type   = "loki"
-            access = "proxy"
-            url    = "http://loki-gateway.logging.svc.cluster.local"
-          }
-        ]
+          ]
+        }
       }
 
       ingress = {
