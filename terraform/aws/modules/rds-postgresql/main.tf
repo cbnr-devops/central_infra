@@ -62,7 +62,7 @@ resource "aws_db_instance" "this" {
   instance_class    = var.instance_class
   db_name           = local.db_name
   username          = local.db_username
-  password          = local.password
+  password          = local.db_password
   allocated_storage = var.allocated_storage
   storage_type      = "gp3"
 

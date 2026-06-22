@@ -143,7 +143,7 @@ resource "aws_iam_role_policy_attachment" "loki_irsa_attachment" {
 }
 
 provider "helm" {
-  kubernetes {
+  kubernetes = {
     host                   = var.cluster_endpoint
     cluster_ca_certificate = base64decode(var.cluster_ca)
 
