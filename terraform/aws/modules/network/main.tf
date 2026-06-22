@@ -100,7 +100,7 @@ resource "aws_nat_gateway" "this" {
 }
 
 resource "aws_route_table" "private" {
-  count = var.enable_nat_gateway ? 1 : 0
+  count  = var.enable_nat_gateway ? 1 : 0
   vpc_id = aws_vpc.this.id
 
   tags = merge(local.common_tags, {

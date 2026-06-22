@@ -20,7 +20,7 @@ variable "az" {
   description = "Single AZ to use for dev"
   type        = string
   # example: "ap-southeast-2a"
-  default     = "ap-southeast-2a"
+  default = "ap-southeast-2a"
 }
 
 variable "public_subnet_cidr" {

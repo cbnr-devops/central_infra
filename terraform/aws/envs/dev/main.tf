@@ -7,14 +7,36 @@ terraform {
       version = "~> 5.0"
     }
     helm = {
-        source  = "hashicorp/helm"
-        version = "~> 2.0"
+      source  = "hashicorp/helm"
+      version = "~> 2.0"
+    }
+    tls = {
+      source  = "hashicorp/tls"
+      version = "~> 4.0"
     }
   }
 }
 
 provider "aws" {
   region = var.aws_region
+}
+
+provider "helm" {
+  kubernetes {
+    host                   = module.eks.cluster_endpoint
+    cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority)
+
+    exec {
+      api_version = "client.authentication.k8s.io/v1beta1"
+      command     = "aws"
+      args = [
+        "eks",
+        "get-token",
+        "--cluster-name",
+        module.eks.cluster_name,
+      ]
+    }
+  }
 }
 
 module "network" {
@@ -44,8 +66,8 @@ module "network" {
 module "eks" {
   source = "../../modules/eks"
 
-  env            = var.env
-  cluster_name   = var.eks_cluster_name
+  env             = var.env
+  cluster_name    = var.eks_cluster_name
   cluster_version = var.eks_version
   vpc_id          = module.network.vpc_id
 
@@ -65,7 +87,7 @@ module "eks" {
 module "rds_postgres" {
   source = "../../modules/rds-postgresql"
 
-  env   = var.env
+  env    = var.env
   vpc_id = module.network.vpc_id
 
   private_subnet_ids = [module.network.private_subnet_ids[1]]
@@ -95,7 +117,7 @@ module "irsa_secretsmanager_db" {
   service_account_name      = var.irsa_sa_name
 
   secret_arns = [
-    module.rds_postgres.db_secret_arn 
+    module.rds_postgres.secret_arn,
   ]
 
   tags = {
@@ -106,11 +128,11 @@ module "irsa_secretsmanager_db" {
 module "observability" {
   source = "../../modules/observability"
 
-  env               = "dev"
-  region            = var.aws_region
+  env    = "dev"
+  region = var.aws_region
 
   cluster_name      = module.eks.cluster_name
   cluster_endpoint  = module.eks.cluster_endpoint
-  cluster_ca = module.eks.cluster_certificate_authority
+  cluster_ca        = module.eks.cluster_certificate_authority
   oidc_provider_arn = module.eks.oidc_provider_arn
 }

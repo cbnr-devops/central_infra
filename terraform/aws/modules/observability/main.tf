@@ -142,25 +142,6 @@ resource "aws_iam_role_policy_attachment" "loki_irsa_attachment" {
   policy_arn = aws_iam_policy.loki_s3_policy.arn
 }
 
-provider "helm" {
-  kubernetes = {
-    host                   = var.cluster_endpoint
-    cluster_ca_certificate = base64decode(var.cluster_ca)
-
-    exec = {
-      api_version = "client.authentication.k8s.io/v1beta1"
-      command     = "aws"
-      args = [
-        "eks",
-        "get-token",
-        "--cluster-name",
-        var.cluster_name,
-      ]
-    }
-  }
-}
-
-
 resource "helm_release" "adot_collector" {
   name       = "aws-otel-collector"
   namespace  = "observability"
