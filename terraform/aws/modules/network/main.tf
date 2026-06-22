@@ -82,7 +82,7 @@ resource "aws_route_table_association" "public" {
 
 resource "aws_eip" "nat" {
   count = var.enable_nat_gateway ? 1 : 0
-  vpc   = true
+  domain   = true
 
   tags = merge(local.common_tags, {
     Name = "central-${var.env}-nat-eip"
