@@ -41,6 +41,48 @@ variable "db_subnet_cidr" {
   default     = "10.1.20.0/24"
 }
 
+variable "db_secret_name" {
+  description = "Name of the Secrets Manager secret that holds DB credentials (username/password)"
+  type        = string
+  default     = "central-dev-db-credentials"
+}
+
+variable "db_engine_version" {
+  description = "PostgreSQL engine version"
+  type        = string
+  default     = "16.3"
+}
+
+variable "db_instance_class" {
+  description = "Instance class for RDS PostgreSQL"
+  type        = string
+  default     = "db.t3.micro"
+}
+
+variable "db_name" {
+  description = "Database name to create"
+  type        = string
+  default     = "appdb"
+}
+
+variable "db_allocated_storage" {
+  description = "Allocated storage for RDS in GB"
+  type        = number
+  default     = 20
+}
+
+variable "db_deletion_protection" {
+  description = "Enable deletion protection for RDS instance"
+  type        = bool
+  default     = false
+}
+
+variable "db_multi_az" {
+  description = "Whether to use Multi-AZ deployment"
+  type        = bool
+  default     = false
+}
+
 variable "eks_cluster_name" {
   description = "Name of the EKS cluster"
   type        = string

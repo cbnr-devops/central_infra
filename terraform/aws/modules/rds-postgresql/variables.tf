@@ -30,6 +30,12 @@ variable "instance_class" {
   default     = "db.t3.micro"
 }
 
+variable "db_name" {
+  description = "Database name"
+  type        = string
+  default     = null
+}
+
 variable "allocated_storage" {
   description = "Allocated storage in GB"
   type        = number
