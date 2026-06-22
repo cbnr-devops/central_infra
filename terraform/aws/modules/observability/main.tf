@@ -147,14 +147,14 @@ provider "helm" {
     host                   = var.cluster_endpoint
     cluster_ca_certificate = base64decode(var.cluster_ca)
 
-    exec {
+    exec = {
       api_version = "client.authentication.k8s.io/v1beta1"
       command     = "aws"
-      args        = [
+      args = [
         "eks",
         "get-token",
         "--cluster-name",
-        var.cluster_name
+        var.cluster_name,
       ]
     }
   }
@@ -166,7 +166,7 @@ resource "helm_release" "adot_collector" {
   namespace  = "observability"
   chart      = "aws-otel-collector"
   repository = "https://aws-observability.github.io/aws-otel-helm-chart"
-  version    = "0.31.0" 
+  version    = "0.31.0"
 
   create_namespace = true
 
@@ -230,8 +230,8 @@ resource "helm_release" "adot_collector" {
           extensions = ["sigv4auth"]
           pipelines = {
             metrics = {
-              receivers  = ["prometheus"]
-              exporters  = ["prometheusremotewrite"]
+              receivers = ["prometheus"]
+              exporters = ["prometheusremotewrite"]
             }
           }
         }
@@ -246,7 +246,7 @@ resource "helm_release" "loki" {
   namespace  = "logging"
   chart      = "loki"
   repository = "https://grafana.github.io/helm-charts"
-  version    = "5.42.0" 
+  version    = "5.42.0"
 
   create_namespace = true
 
@@ -272,7 +272,7 @@ resource "helm_release" "loki" {
               store        = "boltdb-shipper"
               object_store = "aws"
               schema       = "v11"
-              index        = {
+              index = {
                 prefix = "index_"
                 period = "24h"
               }
@@ -282,14 +282,14 @@ resource "helm_release" "loki" {
 
         storage_config = {
           aws = {
-            s3        = "s3://${aws_s3_bucket.loki.bucket}"
-            endpoint  = local.loki_s3_endpoint
-            region    = var.region
+            s3               = "s3://${aws_s3_bucket.loki.bucket}"
+            endpoint         = local.loki_s3_endpoint
+            region           = var.region
             s3forcepathstyle = true
           }
 
           boltdb_shipper = {
-            shared_store = "aws"
+            shared_store           = "aws"
             active_index_directory = "/var/loki/index"
             cache_location         = "/var/loki/cache"
           }
@@ -315,9 +315,9 @@ resource "helm_release" "alloy" {
   namespace  = "logging"
   chart      = "alloy"
   repository = "https://grafana.github.io/helm-charts"
-  version    = "0.4.0" 
+  version    = "0.4.0"
 
-  create_namespace = false 
+  create_namespace = false
 
   values = [
     yamlencode({
@@ -328,7 +328,7 @@ resource "helm_release" "alloy" {
         }
 
         configMap = {
-          create = true
+          create  = true
           content = <<-EOF
             logging {
               level  = "info"
@@ -367,14 +367,14 @@ resource "helm_release" "grafana" {
   namespace  = "observability"
   chart      = "grafana"
   repository = "https://grafana.github.io/helm-charts"
-  version    = "7.3.0" 
+  version    = "7.3.0"
 
   create_namespace = true
 
   values = [
     yamlencode({
       adminUser     = "admin"
-      adminPassword = "admin" 
+      adminPassword = "admin"
 
       service = {
         type = "ClusterIP"
@@ -399,9 +399,9 @@ resource "helm_release" "grafana" {
             isDefault = true
             url       = "https://aps-workspaces.${var.region}.amazonaws.com/workspaces/${aws_prometheus_workspace.this.id}"
             jsonData = {
-              httpMethod = "POST"
-              sigV4Auth  = true
-              sigV4Region = var.region
+              httpMethod   = "POST"
+              sigV4Auth    = true
+              sigV4Region  = var.region
               sigV4Service = "aps"
             }
           },
