@@ -99,7 +99,7 @@ module "irsa_secretsmanager_db" {
 }
 
 module "observability" {
-  source = "../modules/observability"
+  source = "../../modules/observability"
 
   env               = "dev"
   region            = var.region
