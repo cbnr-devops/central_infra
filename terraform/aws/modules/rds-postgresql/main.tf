@@ -6,6 +6,10 @@ locals {
     },
     var.tags
   )
+  db_secret_json = jsondecode(data.aws_secretsmanager_secret_version.db.secret_string)
+  db_username    = local.db_secret_json.username
+  db_password    = local.db_secret_json.password
+  db_name        = coalesce(try(local.db_secret_json.dbname, null), var.db_name)
 }
 
 data "aws_secretsmanager_secret" "db" {
@@ -56,9 +60,9 @@ resource "aws_db_instance" "this" {
   engine            = "postgres"
   engine_version    = var.engine_version
   instance_class    = var.instance_class
-  db_name           = var.db_name
-  username          = var.username
-  password          = var.password
+  db_name           = local.db_name
+  username          = local.db_username
+  password          = local.password
   allocated_storage = var.allocated_storage
   storage_type      = "gp3"
 
