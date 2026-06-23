@@ -77,6 +77,15 @@ module "eks" {
 
   instance_type = var.eks_node_instance_type
 
+  authentication_mode = "API_AND_CONFIG_MAP"
+
+  access_entries = {
+    sai-devops = {
+      principal_arn = "arn:aws:iam::987569578177:user/sai-devops"
+      policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+    }
+  }
+
   tags = {
     Owner = "sai"
   }

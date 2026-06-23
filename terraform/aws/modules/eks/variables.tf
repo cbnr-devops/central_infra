@@ -53,3 +53,19 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "authentication_mode" {
+  description = "EKS cluster authentication mode (CONFIG_MAP, API, or API_AND_CONFIG_MAP)"
+  type        = string
+  default     = "API_AND_CONFIG_MAP"
+}
+
+variable "access_entries" {
+  description = "Map of IAM principals to grant cluster access via EKS access entries"
+  type = map(object({
+    principal_arn = string
+    policy_arn    = string
+    access_scope  = optional(string, "cluster")
+  }))
+  default = {}
+}

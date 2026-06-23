@@ -54,12 +54,13 @@ resource "aws_security_group" "this" {
   })
 }
 
+# Resolve the engine version from the requested major version, letting AWS pick
+# the latest available minor in the target region. Pinning exact minors breaks
+# whenever AWS deprecates a minor (the cause of the prior CI failure).
 data "aws_rds_engine_version" "postgres" {
-  engine = "postgres"
-  preferred_versions = distinct(concat(
-    [var.engine_version],
-    ["16.8", "16.6", "16.4", "16.2", "15.12", "15.10", "15.8"]
-  ))
+  engine  = "postgres"
+  version = var.engine_version
+  latest  = true
 }
 
 resource "aws_db_instance" "this" {

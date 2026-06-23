@@ -19,9 +19,9 @@ variable "db_secret_name" {
 }
 
 variable "engine_version" {
-  description = "PostgreSQL engine version"
+  description = "PostgreSQL major engine version (e.g. \"16\"). AWS selects the latest available minor in the region."
   type        = string
-  default     = "15.4"
+  default     = "16"
 }
 
 variable "instance_class" {

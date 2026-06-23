@@ -63,11 +63,39 @@ resource "aws_eks_cluster" "this" {
   role_arn = aws_iam_role.cluster.arn
   version  = var.cluster_version
 
+  access_config {
+    authentication_mode = var.authentication_mode
+  }
+
   vpc_config {
     subnet_ids = var.private_subnet_ids
   }
 
   tags = local.common_tags
+}
+
+resource "aws_eks_access_entry" "this" {
+  for_each = var.access_entries
+
+  cluster_name  = aws_eks_cluster.this.name
+  principal_arn = each.value.principal_arn
+  type          = "STANDARD"
+
+  tags = local.common_tags
+}
+
+resource "aws_eks_access_policy_association" "this" {
+  for_each = var.access_entries
+
+  cluster_name  = aws_eks_cluster.this.name
+  principal_arn = each.value.principal_arn
+  policy_arn    = each.value.policy_arn
+
+  access_scope {
+    type = each.value.access_scope
+  }
+
+  depends_on = [aws_eks_access_entry.this]
 }
 
 data "tls_certificate" "eks" {
