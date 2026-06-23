@@ -147,6 +147,8 @@ resource "helm_release" "adot_collector" {
   chart      = "opentelemetry-collector"
   repository = "https://open-telemetry.github.io/opentelemetry-helm-charts"
   version    = "0.111.1"
+  replace         = true
+  cleanup_on_fail = true
 
   create_namespace = true
 
@@ -204,6 +206,7 @@ resource "helm_release" "adot_collector" {
         }
 
         exporters = {
+          debug = null
           prometheusremotewrite = {
             endpoint = local.amp_remote_write_endpoint
             auth = {
@@ -236,14 +239,16 @@ resource "helm_release" "adot_collector" {
 
 
 resource "helm_release" "loki" {
-  name       = "loki"
-  namespace  = "logging"
-  chart      = "loki"
-  repository = "https://grafana.github.io/helm-charts"
-  version    = "5.42.0"
+  name            = "loki"
+  namespace       = "logging"
+  chart           = "loki"
+  repository      = "https://grafana.github.io/helm-charts"
+  version         = "5.42.0"
+  replace         = true
+  cleanup_on_fail = true
 
   create_namespace = true
-  timeout          = 900
+  timeout          = 300
 
   values = [
     yamlencode({
@@ -300,7 +305,7 @@ resource "helm_release" "loki" {
       }
 
       persistence = {
-        enabled = true
+        enabled = false
         size    = "10Gi"
       }
 
