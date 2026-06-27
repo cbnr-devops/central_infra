@@ -103,19 +103,19 @@ variable "eks_node_instance_type" {
 variable "eks_node_desired_size" {
   description = "Desired number of nodes in the node group"
   type        = number
-  default     = 1
+  default     = 2
 }
 
 variable "eks_node_min_size" {
   description = "Minimum number of nodes in the node group"
   type        = number
-  default     = 1
+  default     = 2
 }
 
 variable "eks_node_max_size" {
   description = "Maximum number of nodes in the node group"
   type        = number
-  default     = 1
+  default     = 2
 }
 
 variable "irsa_sa_namespace" {
