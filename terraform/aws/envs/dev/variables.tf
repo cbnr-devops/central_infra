@@ -115,7 +115,7 @@ variable "eks_node_min_size" {
 variable "eks_node_max_size" {
   description = "Maximum number of nodes in the node group"
   type        = number
-  default     = 0
+  default     = 1
 }
 
 variable "irsa_sa_namespace" {
