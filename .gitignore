@@ -1,0 +1,12 @@
+# Terraform local working directories
+**/.terraform/
+
+# Terraform crash logs
+crash.log
+crash.*.log
+
+# Terraform override files are for local experiments only
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
