@@ -31,7 +31,7 @@ parameters:
     type: object
     default:
       - name: shared
-        dependsOn: Checkout
+        dependsOn: TerraformValidate
       - name: dev
         dependsOn: TerraformApplyshared
       - name: staging
