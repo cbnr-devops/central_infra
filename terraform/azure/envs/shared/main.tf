@@ -23,6 +23,12 @@ resource "azurerm_key_vault" "this" {
   }
 }
 
+resource "azurerm_role_assignment" "pipeline_key_vault_secrets_user" {
+  scope                = azurerm_key_vault.this.id
+  role_definition_name = "Key Vault Secrets User"
+  principal_id         = "5cfea5dd-d6cd-4ad7-9928-6a6004feb215"
+}
+
 module "acr" {
   source                  = "../../modules/acr"
   env                     = "shared"
