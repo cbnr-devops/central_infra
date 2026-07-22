@@ -15,7 +15,7 @@ resource "azurerm_key_vault" "this" {
   soft_delete_retention_days    = 7
   purge_protection_enabled      = true
   public_network_access_enabled = true
-  rbac_authorization_enabled = true
+  rbac_authorization_enabled    = true
 
   tags = {
     Environment = "shared"
@@ -24,12 +24,12 @@ resource "azurerm_key_vault" "this" {
 }
 
 module "acr" {
-  source = "../../modules/acr"
-  env                        = "shared"
-  resource_group_name        = module.resource_group.name
-  location                   = module.resource_group.location
-  sku                        = "Premium"
-  repositories               = var.acr_repositories
-  enable_private_endpoint    = false
-  allowed_ips                = var.agent_vm_ips
+  source                  = "../../modules/acr"
+  env                     = "shared"
+  resource_group_name     = module.resource_group.name
+  location                = module.resource_group.location
+  sku                     = "Premium"
+  repositories            = var.acr_repositories
+  enable_private_endpoint = false
+  allowed_ips             = var.agent_vm_ips
 }
