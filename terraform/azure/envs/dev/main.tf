@@ -13,24 +13,24 @@ module "vnet" {
 }
 
 module "aks" {
-  source              = "../../modules/aks"
-  env                 = "dev"
-  cluster_name        = "dev-cluster"
-  resource_group_name = module.resource_group.name
-  location            = module.resource_group.location
-  subnet_id           = module.vnet.private_subnet_id
-  vm_size             = var.vm_size
-  max_pods            = 100
+  source                     = "../../modules/aks"
+  env                        = "dev"
+  cluster_name               = "dev-cluster"
+  resource_group_name        = module.resource_group.name
+  location                   = module.resource_group.location
+  subnet_id                  = module.vnet.private_subnet_id
+  vm_size                    = var.vm_size
+  max_pods                   = 100
   log_analytics_workspace_id = azurerm_log_analytics_workspace.this.id
 }
 
 module "postgresql" {
-  source              = "../../modules/postgresql"
-  env                 = "dev"
-  resource_group_name = module.resource_group.name
-  location            = module.resource_group.location
-  admin_username      = data.azurerm_key_vault_secret.pg_username.value
-  admin_password      = data.azurerm_key_vault_secret.pg_password.value  
+  source                     = "../../modules/postgresql"
+  env                        = "dev"
+  resource_group_name        = module.resource_group.name
+  location                   = module.resource_group.location
+  admin_username             = data.azurerm_key_vault_secret.pg_username.value
+  admin_password             = data.azurerm_key_vault_secret.pg_password.value
   private_endpoint_subnet_id = module.vnet.private_endpoint_subnet_id
   vnet_id                    = module.vnet.vnet_id
 }
