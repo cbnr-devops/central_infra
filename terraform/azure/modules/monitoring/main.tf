@@ -5,12 +5,12 @@ resource "azurerm_monitor_workspace" "this" {
 }
 
 resource "azurerm_dashboard_grafana" "this" {
-  name                              = "${var.env}-grafana"
-  resource_group_name               = var.resource_group_name
-  location                          = var.location
-  sku                               = "Standard"
-  grafana_major_version             = 11
-  public_network_access_enabled     = true
+  name                          = "${var.env}-grafana"
+  resource_group_name           = var.resource_group_name
+  location                      = var.location
+  sku                           = "Standard"
+  grafana_major_version         = 12
+  public_network_access_enabled = true
 
   azure_monitor_workspace_integrations {
     resource_id = azurerm_monitor_workspace.this.id
