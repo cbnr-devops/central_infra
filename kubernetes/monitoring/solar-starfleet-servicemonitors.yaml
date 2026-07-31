@@ -1,0 +1,33 @@
+apiVersion: azmonitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: solar-system
+  namespace: dev
+spec:
+  selector:
+    matchLabels:
+      app: solar-system
+  namespaceSelector:
+    matchNames:
+      - dev
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 30s
+---
+apiVersion: azmonitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: starship-fleet
+  namespace: dev
+spec:
+  selector:
+    matchLabels:
+      app: starship-fleet
+  namespaceSelector:
+    matchNames:
+      - dev
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 30s
