@@ -6,14 +6,14 @@ resource "azurerm_kubernetes_cluster" "this" {
   kubernetes_version  = "1.34"
 
   default_node_pool {
-    name           = "default"
-    node_count     = 1
-    min_count      = 1
-    max_count      = 2
-    vm_size        = var.vm_size
-    vnet_subnet_id = var.subnet_id
-    auto_scaling_enabled = true
-    max_pods            = var.max_pods
+    name                        = "default"
+    node_count                  = 1
+    min_count                   = 1
+    max_count                   = 2
+    vm_size                     = var.vm_size
+    vnet_subnet_id              = var.subnet_id
+    auto_scaling_enabled        = true
+    max_pods                    = var.max_pods
     temporary_name_for_rotation = "tmpdefault"
   }
 
@@ -31,15 +31,21 @@ resource "azurerm_kubernetes_cluster" "this" {
   workload_identity_enabled = true
 
   oms_agent {
-    log_analytics_workspace_id = var.log_analytics_workspace_id
+    log_analytics_workspace_id      = var.log_analytics_workspace_id
     msi_auth_for_monitoring_enabled = true
   }
-  
+
   monitor_metrics {
     annotations_allowed = null
     labels_allowed      = null
   }
-  
+
+  lifecycle {
+    ignore_changes = [
+      default_node_pool[0].node_count,
+    ]
+  }
+
   tags = {
     Environment = var.env
     Project     = "central-infra"
