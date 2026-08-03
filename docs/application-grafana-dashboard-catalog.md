@@ -141,13 +141,13 @@ Use this dashboard when the application exposes Prometheus HTTP metrics.
 
 | Panel | PromQL | Visualization | Settings |
 |---|---|---|---|
-| Request Rate | `sum(rate(http_requests_total{namespace="$namespace", service="$service"}[5m]))` | Time series | Unit: `req/s` |
-| Request Rate by Route | `sum by (route) (rate(http_requests_total{namespace="$namespace", service="$service"}[5m]))` | Time series | Legend: `{{route}}` |
-| Request Rate by Method | `sum by (method) (rate(http_requests_total{namespace="$namespace", service="$service"}[5m]))` | Bar chart | Good for GET/POST split |
-| Error Rate | `sum(rate(http_requests_total{namespace="$namespace", service="$service", status=~"5.."}[5m]))` | Time series | Unit: `req/s` |
-| Error Percentage | `100 * sum(rate(http_requests_total{namespace="$namespace", service="$service", status=~"5.."}[5m])) / sum(rate(http_requests_total{namespace="$namespace", service="$service"}[5m]))` | Gauge | Unit: `percent` |
-| p95 Latency | `histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{namespace="$namespace", service="$service"}[5m])))` | Time series | Unit: `seconds` |
-| p99 Latency | `histogram_quantile(0.99, sum by (le) (rate(http_request_duration_seconds_bucket{namespace="$namespace", service="$service"}[5m])))` | Time series | Unit: `seconds` |
+| Request Rate | `sum(rate(http_requests_total{namespace="$namespace", service="$k8s_service"}[5m]))` | Time series | Unit: `req/s` |
+| Request Rate by Route | `sum by (route) (rate(http_requests_total{namespace="$namespace", service="$k8s_service"}[5m]))` | Time series | Legend: `{{route}}` |
+| Request Rate by Method | `sum by (method) (rate(http_requests_total{namespace="$namespace", service="$k8s_service"}[5m]))` | Bar chart | Good for GET/POST split |
+| Error Rate | `sum(rate(http_requests_total{namespace="$namespace", service="$k8s_service", status=~"5.."}[5m])) or vector(0)` | Time series | Unit: `req/s` |
+| Error Percentage | `100 * (sum(rate(http_requests_total{namespace="$namespace", service="$k8s_service", status=~"5.."}[5m])) or vector(0)) / sum(rate(http_requests_total{namespace="$namespace", service="$k8s_service"}[5m]))` | Gauge | Unit: `percent` |
+| p95 Latency | `histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{namespace="$namespace", service="$k8s_service"}[5m])))` | Time series | Unit: `seconds` |
+| p99 Latency | `histogram_quantile(0.99, sum by (le) (rate(http_request_duration_seconds_bucket{namespace="$namespace", service="$k8s_service"}[5m])))` | Time series | Unit: `seconds` |
 
 Error percentage gauge thresholds:
 
@@ -229,3 +229,113 @@ starfleet_ship_requests_total
 ```
 
 Keep labels low-cardinality. Avoid labels such as raw URL, user ID, request ID, or unbounded object names.
+
+# PostgreSQL Database Dashboard Catalog
+
+Create a separate Grafana folder:
+
+```text
+PostgreSQL Database
+```
+
+Use the `Azure Monitor` data source for Azure PostgreSQL server metrics:
+
+```text
+Service: Microsoft.DBforPostgreSQL/flexibleServers
+Resource group: central-dev-rg
+Resource: dev-solar-postgres
+```
+
+Use `Managed_Prometheus_dev-monitor-workspace` only for app-to-DB metrics emitted by the solar-system and starship-fleet apps.
+
+## 1. PostgreSQL / Overview
+
+| Panel | Azure Metric | Visualization | Settings |
+|---|---|---|---|
+| DB Alive | `is_db_alive` | Stat | `1` green, `0` red |
+| CPU % | `cpu_percent` | Gauge | Green < 70, yellow 70-85, red > 85 |
+| Memory % | `memory_percent` | Gauge | Green < 70, yellow 70-85, red > 85 |
+| Storage % | `storage_percent` | Gauge | Green < 70, yellow 70-85, red > 85 |
+| Active Connections | `active_connections` | Stat | Current connection count |
+| Failed Connections | `connections_failed` | Time series | Aggregation: `Sum` |
+
+## 2. PostgreSQL / Connections
+
+| Panel | Azure Metric | Visualization | Settings |
+|---|---|---|---|
+| Active Connections | `active_connections` | Time series | Aggregation: average |
+| Successful Connections | `connections_succeeded` | Time series | Aggregation: sum |
+| Failed Connections | `connections_failed` | Time series | Aggregation: sum |
+| Max Connections | `max_connections` | Stat | Unit: short |
+| Sessions by State | `sessions_by_state` | Bar chart or time series | Split by `State` |
+| Sessions by Wait Event | `sessions_by_wait_event_type` | Bar chart or table | Split by `WaitEventType` |
+
+## 3. PostgreSQL / Performance
+
+| Panel | Azure Metric | Visualization | Settings |
+|---|---|---|---|
+| CPU Usage | `cpu_percent` | Time series | Unit: percent |
+| Memory Usage | `memory_percent` | Time series | Unit: percent |
+| Oldest Query | `longest_query_time_sec` | Stat or time series | Unit: seconds |
+| Oldest Transaction | `longest_transaction_time_sec` | Stat or time series | Unit: seconds |
+| Oldest Backend | `oldest_backend_time_sec` | Time series | Unit: seconds |
+| Transaction ID Usage | `maximum_used_transactionIDs` | Gauge | Watch for wraparound risk |
+
+## 4. PostgreSQL / Storage
+
+| Panel | Azure Metric | Visualization | Settings |
+|---|---|---|---|
+| Storage Used | `storage_used` | Time series | Unit: bytes |
+| Storage Free | `storage_free` | Stat or time series | Unit: bytes |
+| Storage % | `storage_percent` | Gauge | Green < 70, yellow 70-85, red > 85 |
+| Backup Storage Used | `backup_storage_used` | Time series | Unit: bytes |
+| Transaction Log Storage | `txlogs_storage_used` | Time series | Unit: bytes |
+| Database Size | `database_size_bytes` | Time series | Unit: bytes |
+
+## 5. PostgreSQL / IO & Network
+
+| Panel | Azure Metric | Visualization | Settings |
+|---|---|---|---|
+| IOPS | `iops` | Time series | Unit: ops/sec |
+| Read IOPS | `read_iops` | Time series | Unit: ops/sec |
+| Write IOPS | `write_iops` | Time series | Unit: ops/sec |
+| Disk Queue Depth | `disk_queue_depth` | Time series | Unit: short |
+| Read Throughput | `read_throughput` | Time series | Unit: bytes/sec |
+| Write Throughput | `write_throughput` | Time series | Unit: bytes/sec |
+| Network In | `network_bytes_ingress` | Time series | Unit: bytes |
+| Network Out | `network_bytes_egress` | Time series | Unit: bytes |
+
+## 6. PostgreSQL / Reliability
+
+| Panel | Azure Metric | Visualization | Settings |
+|---|---|---|---|
+| DB Alive | `is_db_alive` | Stat | `1` green, `0` red |
+| Failed Connections | `connections_failed` | Time series | Aggregation: sum |
+| Deadlocks | `deadlocks` | Stat or time series | Threshold: `0` green, `1+` red |
+| CPU Saturation | `cpu_percent` | Gauge | Green < 70, yellow 70-85, red > 85 |
+| Memory Saturation | `memory_percent` | Gauge | Green < 70, yellow 70-85, red > 85 |
+| Storage Saturation | `storage_percent` | Gauge | Green < 70, yellow 70-85, red > 85 |
+| Disk IOPS Consumed % | `disk_iops_consumed_percentage` | Gauge | Green < 70, yellow 70-85, red > 85 |
+| Disk Bandwidth Consumed % | `disk_bandwidth_consumed_percentage` | Gauge | Green < 70, yellow 70-85, red > 85 |
+
+## 7. PostgreSQL / App DB Calls
+
+These panels use Managed Prometheus because the metrics come from the application code.
+
+### Solar System
+
+| Panel | PromQL | Visualization | Settings |
+|---|---|---|---|
+| DB Lookup Rate | `rate(planet_db_lookup_duration_seconds_count{namespace="dev"}[5m])` | Time series | Unit: ops/sec |
+| p95 DB Lookup Latency | `histogram_quantile(0.95, sum by (le) (rate(planet_db_lookup_duration_seconds_bucket{namespace="dev"}[5m])))` | Time series | Unit: seconds |
+| DB Lookup Errors | `sum(rate(planet_db_lookup_errors_total{namespace="dev"}[5m])) or vector(0)` | Stat or time series | Threshold: `0` green, `>0` red |
+| Data Source Split | `sum by (source) (rate(planet_data_source_total{namespace="dev"}[5m]))` | Bar chart or time series | Shows DB vs JSON fallback |
+
+### Starship Fleet
+
+| Panel | PromQL | Visualization | Settings |
+|---|---|---|---|
+| DB Lookup Rate | `rate(starship_db_lookup_duration_seconds_count{namespace="dev"}[5m])` | Time series | Unit: ops/sec |
+| p95 DB Lookup Latency | `histogram_quantile(0.95, sum by (le) (rate(starship_db_lookup_duration_seconds_bucket{namespace="dev"}[5m])))` | Time series | Unit: seconds |
+| DB Lookup Errors | `sum(rate(starship_db_lookup_errors_total{namespace="dev"}[5m])) or vector(0)` | Stat or time series | Threshold: `0` green, `>0` red |
+| Data Source Split | `sum by (source) (rate(starship_data_source_total{namespace="dev"}[5m]))` | Bar chart or time series | Shows DB vs JSON fallback |
