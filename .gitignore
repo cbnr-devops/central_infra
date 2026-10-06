@@ -1,6 +1,15 @@
 # Terraform local working directories
 **/.terraform/
 
+# Terraform state and plans
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.plan
+
+# Terraform-generated dependency lock backup files
+.terraform.tfstate.lock.info
+
 # Terraform crash logs
 crash.log
 crash.*.log
