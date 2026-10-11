@@ -1,0 +1,16 @@
+location            = "australiaeast"
+resource_group_name = "central-cicd-rg"
+
+azure_devops_organization_url = "https://dev.azure.com/<organization>"
+azure_devops_project_name     = "<project-name>"
+managed_devops_pool_name      = "central-infra-mdp"
+
+maximum_concurrency = 1
+agent_vm_size       = "Standard_D2ads_v5"
+
+custom_image_id    = "/subscriptions/<subscription-id>/resourceGroups/<image-resource-group>/providers/Microsoft.Compute/galleries/<gallery-name>/images/<image-definition-name>"
+custom_image_alias = "central-custom-linux"
+
+vnet_cidr                    = "10.10.0.0/16"
+agent_subnet_cidr            = "10.10.1.0/27"
+private_endpoint_subnet_cidr = "10.10.2.0/27"
