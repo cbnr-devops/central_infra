@@ -12,15 +12,15 @@ The first phase creates:
 - A Dev Center and Dev Center project.
 - Role assignments for the `DevOpsInfrastructure` service principal, including
   gallery-wide image-reader access that remains stable across image definitions.
-- A stateless Managed DevOps Pool using an existing Azure Compute Gallery image
-  definition created outside Terraform.
+- A stateless Managed DevOps Pool using a version-qualified Azure Compute
+  Gallery image created outside Terraform.
 
 The ACR private endpoint is intentionally deferred until the shared ACR exists.
 
 ## Prerequisites
 
-- The gallery image definition contains at least one replicated, generalized
-  image version supported by Managed DevOps Pools.
+- The gallery image version is replicated, generalized, and supported by
+  Managed DevOps Pools.
 - The applying identity can create role assignments on the VNet and gallery.
 - The applying user is a member of the target Azure DevOps organization and
 project and has project-level Agent Pool Creator or Administrator permission.

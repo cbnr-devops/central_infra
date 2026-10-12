@@ -126,9 +126,13 @@ resource "azurerm_managed_devops_pool" "cicd" {
     subnet_id = azurerm_subnet.managed_devops_pool.id
 
     image {
-      id      = var.gallery_image_definition_id
+      id      = var.gallery_image_version_id
       aliases = [var.custom_image_alias]
       buffer  = "*"
+    }
+
+    security {
+      interactive_logon_enabled = false
     }
   }
 

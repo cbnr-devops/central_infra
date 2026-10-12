@@ -72,13 +72,13 @@ variable "agent_vm_size" {
   default     = "Standard_D2ads_v5"
 }
 
-variable "gallery_image_definition_id" {
-  description = "Resource ID of the existing Azure Compute Gallery image definition used by the Managed DevOps Pool."
+variable "gallery_image_version_id" {
+  description = "Version-qualified resource ID of the existing Azure Compute Gallery image used by the Managed DevOps Pool."
   type        = string
 
   validation {
-    condition     = can(regex("(?i)^/subscriptions/[^/]+/resourceGroups/[^/]+/providers/Microsoft\\.Compute/galleries/[^/]+/images/[^/]+$", var.gallery_image_definition_id))
-    error_message = "The value must be an Azure Compute Gallery image definition ID ending in /images/<image-name>, not an image version ID."
+    condition     = can(regex("(?i)^/subscriptions/[^/]+/resourceGroups/[^/]+/providers/Microsoft\\.Compute/galleries/[^/]+/images/[^/]+/versions/(latest|[0-9]+\\.[0-9]+\\.[0-9]+)$", var.gallery_image_version_id))
+    error_message = "The value must be a version-qualified Azure Compute Gallery image ID ending in /versions/latest or /versions/<major.minor.patch>."
   }
 }
 

@@ -9,7 +9,7 @@ maximum_concurrency = 1
 agent_vm_size       = "Standard_D2ads_v5"
 
 compute_gallery_id          = "/subscriptions/<subscription-id>/resourceGroups/<resource-group>/providers/Microsoft.Compute/galleries/<gallery-name>"
-gallery_image_definition_id = "/subscriptions/<subscription-id>/resourceGroups/<resource-group>/providers/Microsoft.Compute/galleries/<gallery-name>/images/<image-definition-name>"
+gallery_image_version_id    = "/subscriptions/<subscription-id>/resourceGroups/<resource-group>/providers/Microsoft.Compute/galleries/<gallery-name>/images/<image-definition-name>/versions/latest"
 custom_image_alias          = "central-custom-linux"
 
 vnet_cidr                    = "10.10.0.0/16"

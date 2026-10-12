@@ -43,9 +43,9 @@ output "devops_infrastructure_principal_id" {
   value       = data.azuread_service_principal.devops_infrastructure.object_id
 }
 
-output "gallery_image_definition_id" {
-  description = "Existing image definition ID supplied to the Managed DevOps Pool."
-  value       = var.gallery_image_definition_id
+output "gallery_image_version_id" {
+  description = "Version-qualified gallery image ID supplied to the Managed DevOps Pool."
+  value       = var.gallery_image_version_id
 }
 
 output "compute_gallery_id" {
