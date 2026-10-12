@@ -42,3 +42,8 @@ output "devops_infrastructure_principal_id" {
   description = "Tenant-specific object ID of the DevOpsInfrastructure service principal."
   value       = data.azuread_service_principal.devops_infrastructure.object_id
 }
+
+output "gallery_image_definition_id" {
+  description = "Existing image definition ID supplied to the Managed DevOps Pool."
+  value       = var.gallery_image_definition_id
+}

@@ -7,7 +7,7 @@ variable "location" {
 variable "resource_group_name" {
   description = "Resource group for the CI/CD infrastructure."
   type        = string
-  default     = "central-cicd-rg"
+  default     = "central-infra-cicd-rg"
 }
 
 variable "vnet_name" {
@@ -72,16 +72,13 @@ variable "agent_vm_size" {
   default     = "Standard_D2ads_v5"
 }
 
-variable "custom_image_id" {
-  description = "Resource ID of the generalized Azure Compute Gallery image definition."
+variable "gallery_image_definition_id" {
+  description = "Resource ID of the existing Azure Compute Gallery image definition used by the Managed DevOps Pool."
   type        = string
 
   validation {
-    condition = can(regex(
-      "(?i)^/subscriptions/[0-9a-f-]+/resourceGroups/[^/]+/providers/Microsoft\\.Compute/galleries/[^/]+/images/[^/]+$",
-      var.custom_image_id,
-    ))
-    error_message = "custom_image_id must be an Azure Compute Gallery image definition resource ID, not an image version or managed image."
+    condition     = can(regex("(?i)^/subscriptions/[^/]+/resourceGroups/[^/]+/providers/Microsoft\\.Compute/galleries/[^/]+/images/[^/]+$", var.gallery_image_definition_id))
+    error_message = "The value must be an Azure Compute Gallery image definition ID ending in /images/<image-name>, not an image version ID."
   }
 }
 

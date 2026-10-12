@@ -83,7 +83,7 @@ resource "azurerm_role_assignment" "devops_infrastructure_vnet_network_contribut
 }
 
 resource "azurerm_role_assignment" "devops_infrastructure_image_reader" {
-  scope                = var.custom_image_id
+  scope                = var.gallery_image_definition_id
   role_definition_name = "Compute Gallery Image Reader"
   principal_id         = data.azuread_service_principal.devops_infrastructure.object_id
   principal_type       = "ServicePrincipal"
@@ -126,7 +126,7 @@ resource "azurerm_managed_devops_pool" "cicd" {
     subnet_id = azurerm_subnet.managed_devops_pool.id
 
     image {
-      id      = var.custom_image_id
+      id      = var.gallery_image_definition_id
       aliases = [var.custom_image_alias]
       buffer  = "*"
     }
