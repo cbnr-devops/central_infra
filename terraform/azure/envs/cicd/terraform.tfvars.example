@@ -8,6 +8,7 @@ managed_devops_pool_name      = "central-infra-mdp"
 maximum_concurrency = 1
 agent_vm_size       = "Standard_D2ads_v5"
 
+compute_gallery_id          = "/subscriptions/<subscription-id>/resourceGroups/<resource-group>/providers/Microsoft.Compute/galleries/<gallery-name>"
 gallery_image_definition_id = "/subscriptions/<subscription-id>/resourceGroups/<resource-group>/providers/Microsoft.Compute/galleries/<gallery-name>/images/<image-definition-name>"
 custom_image_alias          = "central-custom-linux"
 

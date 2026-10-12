@@ -83,7 +83,7 @@ resource "azurerm_role_assignment" "devops_infrastructure_vnet_network_contribut
 }
 
 resource "azurerm_role_assignment" "devops_infrastructure_image_reader" {
-  scope                = var.gallery_image_definition_id
+  scope                = var.compute_gallery_id
   role_definition_name = "Compute Gallery Image Reader"
   principal_id         = data.azuread_service_principal.devops_infrastructure.object_id
   principal_type       = "ServicePrincipal"

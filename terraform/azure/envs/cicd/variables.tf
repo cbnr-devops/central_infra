@@ -82,6 +82,16 @@ variable "gallery_image_definition_id" {
   }
 }
 
+variable "compute_gallery_id" {
+  description = "Resource ID of the existing Azure Compute Gallery. The DevOpsInfrastructure image-reader role is assigned at this stable scope."
+  type        = string
+
+  validation {
+    condition     = can(regex("(?i)^/subscriptions/[^/]+/resourceGroups/[^/]+/providers/Microsoft\\.Compute/galleries/[^/]+$", var.compute_gallery_id))
+    error_message = "The value must be an Azure Compute Gallery resource ID ending in /galleries/<gallery-name>."
+  }
+}
+
 variable "custom_image_alias" {
   description = "Alias exposed by the pool for the custom image."
   type        = string

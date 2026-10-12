@@ -47,3 +47,8 @@ output "gallery_image_definition_id" {
   description = "Existing image definition ID supplied to the Managed DevOps Pool."
   value       = var.gallery_image_definition_id
 }
+
+output "compute_gallery_id" {
+  description = "Existing Azure Compute Gallery ID used as the image-reader role scope."
+  value       = var.compute_gallery_id
+}
