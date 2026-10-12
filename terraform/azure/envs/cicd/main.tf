@@ -27,7 +27,8 @@ resource "azurerm_subnet" "managed_devops_pool" {
     name = "managed-devops-pool-delegation"
 
     service_delegation {
-      name = "Microsoft.DevOpsInfrastructure/pools"
+      name    = "Microsoft.DevOpsInfrastructure/pools"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
     }
   }
 }
@@ -131,9 +132,6 @@ resource "azurerm_managed_devops_pool" "cicd" {
       buffer  = "*"
     }
 
-    security {
-      interactive_logon_enabled = false
-    }
   }
 
   tags = var.tags
