@@ -1,0 +1,56 @@
+trigger: none
+pr: none
+
+name: mdp-smoke-$(Date:yyyyMMdd)$(Rev:.r)
+
+pool:
+  name: central-infra-mdp
+  demands:
+    - ImageOverride -equals central-custom-linux
+
+variables:
+  expectedEgressIp: "20.70.188.48"
+
+jobs:
+  - job: VerifyManagedDevOpsPool
+    displayName: Verify Managed DevOps Pool
+    workspace:
+      clean: all
+    steps:
+      - checkout: self
+        clean: true
+
+      - bash: |
+          set -euo pipefail
+
+          echo "Agent name: ${AGENT_NAME}"
+          echo "Agent OS: ${AGENT_OS}"
+          echo "Agent architecture: ${AGENT_OSARCHITECTURE}"
+          echo "Image alias: central-custom-linux"
+          echo
+
+          uname -a
+          cat /etc/os-release
+        displayName: Verify agent operating system
+
+      - bash: |
+          set -euo pipefail
+
+          terraform version
+          az version
+          docker --version
+          git --version
+        displayName: Verify required tools
+
+      - bash: |
+          set -euo pipefail
+
+          actual_ip="$(curl --fail --silent --show-error https://api.ipify.org)"
+          echo "Expected NAT egress IP: $(expectedEgressIp)"
+          echo "Actual NAT egress IP:   ${actual_ip}"
+
+          if [ "${actual_ip}" != "$(expectedEgressIp)" ]; then
+            echo "##vso[task.logissue type=error]Unexpected outbound IP address: ${actual_ip}"
+            exit 1
+          fi
+        displayName: Verify NAT Gateway egress
