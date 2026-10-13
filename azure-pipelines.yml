@@ -1,5 +1,5 @@
-trigger:
-  - '*'
+trigger: none
+pr: none
 
 resources:
   repositories:
@@ -46,7 +46,9 @@ stages:
     jobs:
       - job: Checkout
         pool:
-          name: "sample-project"
+          name: "central-infra-mdp"
+          demands:
+            - ImageOverride -equals central-custom-linux
         steps:
           - template: templates/checkout.yml@templates
   
@@ -57,7 +59,9 @@ stages:
     jobs:
       - job: Format
         pool:
-          name: "sample-project"
+          name: "central-infra-mdp"
+          demands:
+            - ImageOverride -equals central-custom-linux
         steps:
           - template: templates/checkout.yml@templates
           - script: |
@@ -73,7 +77,9 @@ stages:
         - job: Validate${{ item.name }}
           displayName: Validate - ${{ upper(item.name) }}
           pool:
-            name: "sample-project"
+            name: "central-infra-mdp"
+            demands:
+              - ImageOverride -equals central-custom-linux
           steps:
             - template: templates/checkout.yml@templates
             - template: templates/terraform-validate.yml@templates
@@ -92,7 +98,9 @@ stages:
         jobs:
           - job: Apply${{ item.name }}
             pool:
-              name: "sample-project"
+              name: "central-infra-mdp"
+              demands:
+                - ImageOverride -equals central-custom-linux
             steps:
               - template: templates/terraform-apply.yml@templates
                 parameters:
