@@ -10,6 +10,9 @@ pool:
 
 variables:
   expectedEgressIp: "20.70.188.48"
+  acrName: "skssolar"
+  acrPrivateEndpointSubnetCidr: "10.10.2.0/27"
+  azureServiceConnection: "azure-connection"
 
 jobs:
   - job: VerifyManagedDevOpsPool
@@ -54,3 +57,61 @@ jobs:
             exit 1
           fi
         displayName: Verify NAT Gateway egress
+
+      - bash: |
+          set -euo pipefail
+
+          registry_host="$(acrName).azurecr.io"
+          resolved_ips="$(getent ahostsv4 "${registry_host}" | awk '{print $1}' | sort -u)"
+
+          if [ -z "${resolved_ips}" ]; then
+            echo "##vso[task.logissue type=error]No IPv4 address resolved for ${registry_host}"
+            exit 1
+          fi
+
+          echo "${registry_host} resolved to:"
+          echo "${resolved_ips}"
+
+          RESOLVED_IPS="${resolved_ips}" python3 - <<'PY'
+          import ipaddress
+          import os
+
+          expected_subnet = ipaddress.ip_network("$(acrPrivateEndpointSubnetCidr)")
+          resolved = [ipaddress.ip_address(value) for value in os.environ["RESOLVED_IPS"].split()]
+
+          if not resolved or any(address not in expected_subnet for address in resolved):
+              raise SystemExit(
+                  f"Expected every resolved address to be in {expected_subnet}; got {resolved}"
+              )
+
+          print(f"All resolved addresses are inside private endpoint subnet {expected_subnet}.")
+          PY
+        displayName: Verify private ACR DNS resolution
+
+      - task: AzureCLI@2
+        displayName: Verify private ACR login, push, and pull
+        inputs:
+          azureSubscription: $(azureServiceConnection)
+          scriptType: bash
+          scriptLocation: inlineScript
+          inlineScript: |
+            set -euo pipefail
+
+            registry_name="$(acrName)"
+            registry_host="${registry_name}.azurecr.io"
+            image="${registry_host}/mdp-smoke:private-connectivity"
+            build_context="$(mktemp -d)"
+            trap 'rm -rf "${build_context}"' EXIT
+
+            cat > "${build_context}/Dockerfile" <<'DOCKERFILE'
+            FROM scratch
+            LABEL purpose="managed-devops-pool-private-connectivity-test"
+            DOCKERFILE
+
+            az acr login --name "${registry_name}"
+            docker build --tag "${image}" "${build_context}"
+            docker push "${image}"
+            docker image rm "${image}"
+            docker pull "${image}"
+
+            echo "Successfully pushed and pulled ${image} over the ACR private endpoint."

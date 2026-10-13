@@ -15,7 +15,9 @@ The first phase creates:
 - A stateless Managed DevOps Pool using a version-qualified Azure Compute
   Gallery image created outside Terraform.
 
-The ACR private endpoint is intentionally deferred until the shared ACR exists.
+The ACR private endpoint is managed by the `shared` Terraform root after the
+shared ACR exists. It is attached to the private-endpoint subnet created here,
+and its private DNS zone is linked to this CI/CD VNet.
 
 ## Prerequisites
 
