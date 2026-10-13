@@ -9,12 +9,12 @@ resource "azurerm_container_registry" "this" {
   network_rule_bypass_option    = var.enable_private_endpoint ? "AzureServices" : null
 
   dynamic "network_rule_set" {
-    for_each = length(var.allowed_ips) > 0 ? [1] : []
+    for_each = [var.allowed_ips]
     content {
       default_action = "Deny"
 
       dynamic "ip_rule" {
-        for_each = var.allowed_ips
+        for_each = network_rule_set.value
         content {
           action   = "Allow"
           ip_range = ip_rule.value
@@ -92,5 +92,3 @@ resource "azurerm_private_dns_zone_virtual_network_link" "acr" {
     Project     = "central-infra"
   }
 }
-
-

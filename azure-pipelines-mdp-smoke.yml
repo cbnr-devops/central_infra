@@ -103,6 +103,28 @@ jobs:
             build_context="$(mktemp -d)"
             trap 'rm -rf "${build_context}"' EXIT
 
+            public_network_access="$(az acr show \
+              --name "${registry_name}" \
+              --query publicNetworkAccess \
+              --output tsv)"
+            public_ip_rule_count="$(az acr show \
+              --name "${registry_name}" \
+              --query 'length(networkRuleSet.ipRules)' \
+              --output tsv)"
+
+            echo "ACR public network access: ${public_network_access}"
+            echo "ACR public IP rule count: ${public_ip_rule_count}"
+
+            if [ "${public_network_access}" != "Disabled" ]; then
+              echo "##vso[task.logissue type=error]Expected ACR public network access to be Disabled."
+              exit 1
+            fi
+
+            if [ "${public_ip_rule_count}" != "0" ]; then
+              echo "##vso[task.logissue type=error]Expected ACR public IP rule count to be zero."
+              exit 1
+            fi
+
             cat > "${build_context}/Dockerfile" <<'DOCKERFILE'
             FROM scratch
             LABEL purpose="managed-devops-pool-private-connectivity-test"
