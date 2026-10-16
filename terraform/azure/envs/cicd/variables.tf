@@ -58,7 +58,7 @@ variable "managed_devops_pool_name" {
 variable "maximum_concurrency" {
   description = "Maximum number of Managed DevOps Pool agents that can run concurrently."
   type        = number
-  default     = 1
+  default     = 2
 
   validation {
     condition     = var.maximum_concurrency >= 1 && var.maximum_concurrency <= 10000

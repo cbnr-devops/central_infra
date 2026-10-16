@@ -5,7 +5,7 @@ azure_devops_organization_url = "https://dev.azure.com/skssolar"
 azure_devops_project_name     = "sample-project"
 managed_devops_pool_name      = "central-infra-mdp"
 
-maximum_concurrency = 1
+maximum_concurrency = 2
 agent_vm_size       = "Standard_D2ads_v5"
 
 compute_gallery_id       = "/subscriptions/7543cdd5-e635-49b4-b18f-4663b5e9ea61/resourceGroups/central-infra-cicd-rg/providers/Microsoft.Compute/galleries/centralcicdgallery"
