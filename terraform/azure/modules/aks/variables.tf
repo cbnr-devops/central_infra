@@ -39,3 +39,9 @@ variable "log_analytics_workspace_id" {
   description = "Log Analytics Workspace ID for AMA/OMS agent"
   type        = string
 }
+
+variable "api_server_authorized_ip_ranges" {
+  description = "CIDR ranges allowed to access the public AKS API server"
+  type        = list(string)
+  default     = []
+}

@@ -21,8 +21,13 @@ resource "azurerm_kubernetes_cluster" "this" {
     type = "SystemAssigned"
   }
 
+  api_server_access_profile {
+    authorized_ip_ranges = var.api_server_authorized_ip_ranges
+  }
+
   network_profile {
     network_plugin = "azure"
+    outbound_type  = "userAssignedNATGateway"
     service_cidr   = "10.200.0.0/16"
     dns_service_ip = "10.200.0.10"
   }

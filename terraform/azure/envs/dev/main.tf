@@ -13,15 +13,27 @@ module "vnet" {
 }
 
 module "aks" {
-  source                     = "../../modules/aks"
-  env                        = "dev"
-  cluster_name               = "dev-cluster"
-  resource_group_name        = module.resource_group.name
-  location                   = module.resource_group.location
-  subnet_id                  = module.vnet.private_subnet_id
-  vm_size                    = var.vm_size
-  max_pods                   = 100
+  source              = "../../modules/aks"
+  env                 = "dev"
+  cluster_name        = "dev-cluster"
+  resource_group_name = module.resource_group.name
+  location            = module.resource_group.location
+  subnet_id           = module.vnet.private_subnet_id
+  vm_size             = var.vm_size
+  max_pods            = 100
+  api_server_authorized_ip_ranges = [
+    "${data.azurerm_public_ip.cicd_nat.ip_address}/32",
+    "${module.vnet.nat_public_ip_address}/32",
+  ]
   log_analytics_workspace_id = azurerm_log_analytics_workspace.this.id
+}
+
+resource "azurerm_role_assignment" "aks_acr_pull" {
+  scope                            = data.azurerm_container_registry.shared.id
+  role_definition_name             = "AcrPull"
+  principal_id                     = module.aks.kubelet_identity_object_id
+  principal_type                   = "ServicePrincipal"
+  skip_service_principal_aad_check = true
 }
 
 module "postgresql" {
@@ -116,4 +128,9 @@ data "azurerm_key_vault_secret" "pg_username" {
 data "azurerm_container_registry" "shared" {
   name                = "skssolar"
   resource_group_name = "central-shared-rg"
+}
+
+data "azurerm_public_ip" "cicd_nat" {
+  name                = "central-cicd-nat-pip"
+  resource_group_name = "central-infra-cicd-rg"
 }

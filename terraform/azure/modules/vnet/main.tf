@@ -11,10 +11,11 @@ resource "azurerm_virtual_network" "this" {
 }
 
 resource "azurerm_subnet" "private" {
-  name                 = "private-subnet"
-  resource_group_name  = var.resource_group_name
-  virtual_network_name = azurerm_virtual_network.this.name
-  address_prefixes     = [cidrsubnet(var.vnet_cidr, 8, 1)]
+  name                            = "private-subnet"
+  resource_group_name             = var.resource_group_name
+  virtual_network_name            = azurerm_virtual_network.this.name
+  address_prefixes                = [cidrsubnet(var.vnet_cidr, 8, 1)]
+  default_outbound_access_enabled = false
 }
 
 resource "azurerm_subnet" "public" {
