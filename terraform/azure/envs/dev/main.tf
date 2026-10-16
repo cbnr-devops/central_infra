@@ -83,6 +83,13 @@ resource "helm_release" "external_secrets" {
   depends_on = [module.aks]
 }
 
+# Adopt the release created by the former manual ESO installation pipeline.
+# Once imported, subsequent plans manage it as a normal Helm release.
+import {
+  to = helm_release.external_secrets
+  id = "external-secrets/external-secrets"
+}
+
 resource "helm_release" "external_secrets_config" {
   name             = "external-secrets-config"
   chart            = "${path.root}/../../../../eso-files/azure"
@@ -90,6 +97,7 @@ resource "helm_release" "external_secrets_config" {
   create_namespace = true
   atomic           = true
   cleanup_on_fail  = true
+  take_ownership   = true
   wait             = true
   timeout          = 300
 
