@@ -1,0 +1,19 @@
+identity:
+  clientId: ""
+  tenantId: ""
+
+keyVault:
+  url: https://skssecrets.vault.azure.net/
+
+secretStore:
+  name: azure-keyvault-store
+
+externalSecret:
+  name: postgres-credentials-dev
+  targetSecretName: postgres-secret
+  refreshInterval: 1h
+
+remoteSecrets:
+  username: postgres-username
+  password: postgres-password
+  host: postgres-host

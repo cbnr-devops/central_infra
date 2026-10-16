@@ -20,3 +20,27 @@ output "oidc_issuer_url" {
   description = "OIDC issuer URL used for AKS workload identity federation"
   value       = azurerm_kubernetes_cluster.this.oidc_issuer_url
 }
+
+output "kube_config_host" {
+  description = "AKS API server endpoint used by Kubernetes-compatible providers"
+  value       = azurerm_kubernetes_cluster.this.kube_config[0].host
+  sensitive   = true
+}
+
+output "kube_config_client_certificate" {
+  description = "Base64-encoded AKS client certificate"
+  value       = azurerm_kubernetes_cluster.this.kube_config[0].client_certificate
+  sensitive   = true
+}
+
+output "kube_config_client_key" {
+  description = "Base64-encoded AKS client key"
+  value       = azurerm_kubernetes_cluster.this.kube_config[0].client_key
+  sensitive   = true
+}
+
+output "kube_config_cluster_ca_certificate" {
+  description = "Base64-encoded AKS cluster CA certificate"
+  value       = azurerm_kubernetes_cluster.this.kube_config[0].cluster_ca_certificate
+  sensitive   = true
+}

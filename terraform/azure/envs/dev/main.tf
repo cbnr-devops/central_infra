@@ -63,6 +63,53 @@ resource "azurerm_federated_identity_credential" "external_secrets" {
   subject                   = "system:serviceaccount:dev:azure-keyvault-reader"
 }
 
+resource "helm_release" "external_secrets" {
+  name             = "external-secrets"
+  repository       = "https://charts.external-secrets.io"
+  chart            = "external-secrets"
+  version          = "2.6.0"
+  namespace        = "external-secrets"
+  create_namespace = true
+  atomic           = true
+  cleanup_on_fail  = true
+  wait             = true
+  timeout          = 600
+
+  set = [{
+    name  = "installCRDs"
+    value = "true"
+  }]
+
+  depends_on = [module.aks]
+}
+
+resource "helm_release" "external_secrets_config" {
+  name             = "external-secrets-config"
+  chart            = "${path.root}/../../../../eso-files/azure"
+  namespace        = "dev"
+  create_namespace = true
+  atomic           = true
+  cleanup_on_fail  = true
+  wait             = true
+  timeout          = 300
+
+  values = [yamlencode({
+    identity = {
+      clientId = azurerm_user_assigned_identity.external_secrets.client_id
+      tenantId = azurerm_user_assigned_identity.external_secrets.tenant_id
+    }
+    keyVault = {
+      url = "https://skssecrets.vault.azure.net/"
+    }
+  })]
+
+  depends_on = [
+    helm_release.external_secrets,
+    azurerm_federated_identity_credential.external_secrets,
+    azurerm_role_assignment.external_secrets_key_vault_reader,
+  ]
+}
+
 module "postgresql" {
   source                     = "../../modules/postgresql"
   env                        = "dev"
