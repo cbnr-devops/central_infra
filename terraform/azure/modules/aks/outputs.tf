@@ -15,3 +15,8 @@ output "kubelet_identity_object_id" {
   description = "Object ID of the AKS kubelet managed identity"
   value       = azurerm_kubernetes_cluster.this.kubelet_identity[0].object_id
 }
+
+output "oidc_issuer_url" {
+  description = "OIDC issuer URL used for AKS workload identity federation"
+  value       = azurerm_kubernetes_cluster.this.oidc_issuer_url
+}

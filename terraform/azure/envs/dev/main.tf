@@ -36,6 +36,33 @@ resource "azurerm_role_assignment" "aks_acr_pull" {
   skip_service_principal_aad_check = true
 }
 
+resource "azurerm_user_assigned_identity" "external_secrets" {
+  name                = "dev-external-secrets"
+  location            = module.resource_group.location
+  resource_group_name = module.resource_group.name
+
+  tags = {
+    Environment = "dev"
+    Project     = "central-infra"
+  }
+}
+
+resource "azurerm_role_assignment" "external_secrets_key_vault_reader" {
+  scope                            = data.azurerm_key_vault.this.id
+  role_definition_name             = "Key Vault Secrets User"
+  principal_id                     = azurerm_user_assigned_identity.external_secrets.principal_id
+  principal_type                   = "ServicePrincipal"
+  skip_service_principal_aad_check = true
+}
+
+resource "azurerm_federated_identity_credential" "external_secrets" {
+  name                      = "dev-external-secrets"
+  user_assigned_identity_id = azurerm_user_assigned_identity.external_secrets.id
+  audience                  = ["api://AzureADTokenExchange"]
+  issuer                    = module.aks.oidc_issuer_url
+  subject                   = "system:serviceaccount:dev:azure-keyvault-reader"
+}
+
 module "postgresql" {
   source                     = "../../modules/postgresql"
   env                        = "dev"

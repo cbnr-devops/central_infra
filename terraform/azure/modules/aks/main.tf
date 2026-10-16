@@ -15,6 +15,12 @@ resource "azurerm_kubernetes_cluster" "this" {
     auto_scaling_enabled        = true
     max_pods                    = var.max_pods
     temporary_name_for_rotation = "tmpdefault"
+
+    upgrade_settings {
+      drain_timeout_in_minutes      = 0
+      max_surge                     = "10%"
+      node_soak_duration_in_minutes = 0
+    }
   }
 
   identity {
