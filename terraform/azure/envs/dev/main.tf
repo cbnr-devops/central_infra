@@ -47,6 +47,36 @@ module "aks" {
   log_analytics_workspace_id = azurerm_log_analytics_workspace.this.id
 }
 
+resource "azurerm_role_assignment" "management_operator_aks_cluster_user" {
+  scope                = module.aks.cluster_id
+  role_definition_name = "Azure Kubernetes Service Cluster User Role"
+  principal_id         = var.management_operator_object_id
+  principal_type       = "User"
+}
+
+resource "azurerm_role_assignment" "management_operator_aks_rbac_cluster_admin" {
+  scope                = module.aks.cluster_id
+  role_definition_name = "Azure Kubernetes Service RBAC Cluster Admin"
+  principal_id         = var.management_operator_object_id
+  principal_type       = "User"
+}
+
+resource "azurerm_role_assignment" "pipeline_aks_cluster_user" {
+  scope                            = module.aks.cluster_id
+  role_definition_name             = "Azure Kubernetes Service Cluster User Role"
+  principal_id                     = var.pipeline_service_principal_object_id
+  principal_type                   = "ServicePrincipal"
+  skip_service_principal_aad_check = true
+}
+
+resource "azurerm_role_assignment" "pipeline_aks_rbac_cluster_admin" {
+  scope                            = module.aks.cluster_id
+  role_definition_name             = "Azure Kubernetes Service RBAC Cluster Admin"
+  principal_id                     = var.pipeline_service_principal_object_id
+  principal_type                   = "ServicePrincipal"
+  skip_service_principal_aad_check = true
+}
+
 resource "azurerm_role_assignment" "aks_acr_pull" {
   scope                            = data.azurerm_container_registry.shared.id
   role_definition_name             = "AcrPull"
@@ -126,6 +156,8 @@ resource "helm_release" "external_secrets_config" {
     helm_release.external_secrets,
     azurerm_federated_identity_credential.external_secrets,
     azurerm_role_assignment.external_secrets_key_vault_reader,
+    azurerm_role_assignment.pipeline_aks_cluster_user,
+    azurerm_role_assignment.pipeline_aks_rbac_cluster_admin,
   ]
 }
 

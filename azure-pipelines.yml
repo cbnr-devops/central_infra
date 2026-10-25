@@ -53,6 +53,22 @@ stages:
         steps:
           - template: templates/checkout.yml@templates
 
+          - bash: |
+              set -euo pipefail
+
+              if command -v kubelogin >/dev/null 2>&1; then
+                kubelogin --version
+                exit 0
+              fi
+
+              tool_dir="$(Agent.TempDirectory)/aks-tools"
+              mkdir -p "${tool_dir}"
+              az aks install-cli \
+                --install-location "${tool_dir}/kubectl" \
+                --kubelogin-install-location "${tool_dir}/kubelogin"
+              echo "##vso[task.prependpath]${tool_dir}"
+            displayName: Prepare kubelogin
+
           - bash: mkdir -p "$TF_PLUGIN_CACHE_DIR"
             displayName: Prepare Terraform provider cache
 

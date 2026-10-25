@@ -33,6 +33,16 @@ variable "management_operator_object_id" {
   type        = string
 }
 
+variable "pipeline_service_principal_object_id" {
+  description = "Microsoft Entra object ID of the Azure DevOps service connection principal"
+  type        = string
+
+  validation {
+    condition     = can(regex("^[0-9a-fA-F-]{36}$", var.pipeline_service_principal_object_id))
+    error_message = "pipeline_service_principal_object_id must be a UUID-formatted Microsoft Entra object ID."
+  }
+}
+
 variable "management_admin_ssh_public_key" {
   description = "SSH public key for the management VM break-glass administrator"
   type        = string

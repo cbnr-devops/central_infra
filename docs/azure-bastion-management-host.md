@@ -171,11 +171,13 @@ the VM does not automatically authorize `kubectl` operations.
 
 ## AKS identity design and transition state
 
-At the time this guide was created, the Terraform module did **not** configure an
-`azure_active_directory_role_based_access` block. It also does not set
-`azure_rbac_enabled = true`.
+Before the migration, a live-cluster check returned `aadProfile: null` and
+`disableLocalAccounts: false`. The Terraform module now contains the
+`azure_active_directory_role_based_access_control` block with
+`azure_rbac_enabled = true` for the first migration apply. The live cluster does
+not use that configuration until the corresponding Terraform plan is applied.
 
-The next infrastructure phase will replace that client-certificate model with:
+The migration replaces that client-certificate model with:
 
 - AKS-managed Microsoft Entra integration for human and automation identity.
 - Azure RBAC for Kubernetes Authorization.
@@ -184,11 +186,18 @@ The next infrastructure phase will replace that client-certificate model with:
 - Identity-based Terraform and Helm access rather than long-lived cluster
   client certificates.
 
-Until that Terraform change has been applied, the Helm provider remains
-configured from the cluster's client certificate/key kubeconfig fields and
-`az aks get-credentials` obtains credentials that work without converting an
-Entra exec credential. This paragraph should be removed after the migration is
-deployed and validated.
+The migration requires two applies because Terraform refreshes existing Helm
+releases during planning:
+
+1. Enable managed Entra and Azure RBAC, and create operator/pipeline role
+   assignments while the existing certificate remains available as rollback.
+2. After validating Entra access, change the Helm provider to `kubelogin` and
+   set `local_account_disabled = true` to remove certificate administration.
+
+Attempting both changes in the first plan would make Helm request an Entra token
+from a cluster that did not yet accept Entra authentication. Until the second
+apply, the Helm provider therefore remains configured from the cluster's client
+certificate/key fields.
 
 The presence of `kubelogin` on the management VM is preparation for an
 Entra-integrated cluster; installing the binary alone does not enable Entra
@@ -268,7 +277,7 @@ The AKS resource will be configured in this direction:
 resource "azurerm_kubernetes_cluster" "this" {
   # Existing settings omitted.
 
-  azure_active_directory_role_based_access {
+  azure_active_directory_role_based_access_control {
     azure_rbac_enabled = true
     tenant_id          = data.azurerm_client_config.current.tenant_id
   }
@@ -450,7 +459,7 @@ routing, NSG, endpoint, or service-health investigation is needed.
 
 ## Next phase: managed Entra and Azure RBAC
 
-The next infrastructure phase will complete the following work:
+The migration completes the following work across two controlled applies:
 
 - Enable AKS-managed Entra integration.
 - Enable Azure RBAC for Kubernetes Authorization.
@@ -458,8 +467,10 @@ The next infrastructure phase will complete the following work:
   setup is expanded beyond a single operator.
 - Grant the management users/groups the minimum required role.
 - Grant deployment service connections their required namespace or cluster role.
-- Change the Terraform Helm/Kubernetes provider away from long-lived cluster
-  client certificates.
+- Apply managed Entra, Azure RBAC, and all operator/pipeline role assignments
+  before changing provider authentication.
+- Change the Terraform Helm/Kubernetes provider to `kubelogin` and disable AKS
+  local accounts in the second apply.
 - Test `az aks get-credentials`, `kubelogin`, and `kubectl auth can-i` with a
   non-owner test user.
 - Validate External Secrets and workload identity independently; workload

@@ -27,6 +27,11 @@ resource "azurerm_kubernetes_cluster" "this" {
     type = "SystemAssigned"
   }
 
+  azure_active_directory_role_based_access_control {
+    azure_rbac_enabled = true
+    tenant_id          = data.azurerm_client_config.current.tenant_id
+  }
+
   api_server_access_profile {
     authorized_ip_ranges = var.api_server_authorized_ip_ranges
   }
@@ -62,3 +67,5 @@ resource "azurerm_kubernetes_cluster" "this" {
     Project     = "central-infra"
   }
 }
+
+data "azurerm_client_config" "current" {}
