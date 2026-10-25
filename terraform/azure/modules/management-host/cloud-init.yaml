@@ -1,0 +1,18 @@
+#cloud-config
+package_update: true
+package_upgrade: false
+
+packages:
+  - apt-transport-https
+  - ca-certificates
+  - curl
+  - git
+  - jq
+  - unzip
+
+runcmd:
+  - curl -fsSL https://aka.ms/InstallAzureCLIDeb -o /tmp/install-azure-cli.sh
+  - bash /tmp/install-azure-cli.sh
+  - az aks install-cli --install-location /usr/local/bin/kubectl --kubelogin-install-location /usr/local/bin/kubelogin
+  - snap install helm --classic
+  - rm -f /tmp/install-azure-cli.sh

@@ -12,6 +12,25 @@ module "vnet" {
   vnet_cidr           = var.vnet_cidr
 }
 
+module "management_host" {
+  source = "../../modules/management-host"
+
+  name_prefix            = "central-dev"
+  location               = module.resource_group.location
+  resource_group_name    = module.resource_group.name
+  virtual_network_name   = module.vnet.vnet_name
+  nat_gateway_id         = module.vnet.nat_gateway_id
+  bastion_subnet_cidr    = "10.0.4.0/26"
+  management_subnet_cidr = "10.0.5.0/27"
+  operator_object_id     = var.management_operator_object_id
+  admin_ssh_public_key   = var.management_admin_ssh_public_key
+
+  tags = {
+    Environment = "dev"
+    Project     = "central-infra"
+  }
+}
+
 module "aks" {
   source              = "../../modules/aks"
   env                 = "dev"

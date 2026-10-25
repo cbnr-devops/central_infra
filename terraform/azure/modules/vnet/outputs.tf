@@ -2,6 +2,10 @@ output "vnet_id" {
   value = azurerm_virtual_network.this.id
 }
 
+output "vnet_name" {
+  value = azurerm_virtual_network.this.name
+}
+
 output "private_subnet_id" {
   value = azurerm_subnet.private.id
 
@@ -19,4 +23,9 @@ output "private_endpoint_subnet_id" {
 output "nat_public_ip_address" {
   description = "Public egress IP address of the environment NAT Gateway"
   value       = azurerm_public_ip.nat.ip_address
+}
+
+output "nat_gateway_id" {
+  description = "Resource ID of the environment NAT Gateway"
+  value       = azurerm_nat_gateway.this.id
 }

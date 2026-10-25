@@ -19,3 +19,18 @@ output "external_secrets_identity_principal_id" {
   description = "Principal ID granted Key Vault Secrets User on the shared Key Vault"
   value       = azurerm_user_assigned_identity.external_secrets.principal_id
 }
+
+output "bastion_name" {
+  description = "Name of the Azure Bastion host used for native management access"
+  value       = module.management_host.bastion_name
+}
+
+output "management_vm_id" {
+  description = "Resource ID used with az network bastion ssh"
+  value       = module.management_host.management_vm_id
+}
+
+output "management_vm_private_ip" {
+  description = "Private IP address of the management VM"
+  value       = module.management_host.management_vm_private_ip
+}

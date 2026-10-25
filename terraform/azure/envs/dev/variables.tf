@@ -27,3 +27,13 @@ variable "location" {
   type        = string
   default     = "australiaeast"
 }
+
+variable "management_operator_object_id" {
+  description = "Microsoft Entra object ID granted administrator login to the management VM"
+  type        = string
+}
+
+variable "management_admin_ssh_public_key" {
+  description = "SSH public key for the management VM break-glass administrator"
+  type        = string
+}
