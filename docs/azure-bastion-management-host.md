@@ -169,13 +169,12 @@ Several similar-sounding controls apply at different layers:
 Passing one layer does not bypass another. For example, successful Entra SSH to
 the VM does not automatically authorize `kubectl` operations.
 
-## AKS identity design and transition state
+## AKS identity design
 
 Before the migration, a live-cluster check returned `aadProfile: null` and
-`disableLocalAccounts: false`. The Terraform module now contains the
-`azure_active_directory_role_based_access_control` block with
-`azure_rbac_enabled = true` for the first migration apply. The live cluster does
-not use that configuration until the corresponding Terraform plan is applied.
+`disableLocalAccounts: false`. The first migration apply enabled AKS-managed
+Entra integration and Azure RBAC. Interactive validation confirmed that the
+operator's Entra object ID was recognized and authorized by AKS.
 
 The migration replaces that client-certificate model with:
 
@@ -186,18 +185,18 @@ The migration replaces that client-certificate model with:
 - Identity-based Terraform and Helm access rather than long-lived cluster
   client certificates.
 
-The migration requires two applies because Terraform refreshes existing Helm
-releases during planning:
+The migration was deliberately divided into two applies because Terraform
+refreshes existing Helm releases during planning:
 
 1. Enable managed Entra and Azure RBAC, and create operator/pipeline role
    assignments while the existing certificate remains available as rollback.
 2. After validating Entra access, change the Helm provider to `kubelogin` and
    set `local_account_disabled = true` to remove certificate administration.
 
-Attempting both changes in the first plan would make Helm request an Entra token
-from a cluster that did not yet accept Entra authentication. Until the second
-apply, the Helm provider therefore remains configured from the cluster's client
-certificate/key fields.
+Attempting both changes in the first plan would have made Helm request an Entra
+token from a cluster that did not yet accept Entra authentication. The second
+apply changes the Helm provider to `kubelogin` and disables local accounts,
+removing the temporary certificate fallback.
 
 The presence of `kubelogin` on the management VM is preparation for an
 Entra-integrated cluster; installing the binary alone does not enable Entra
@@ -207,6 +206,134 @@ This distinction is important because the Entra SSH login identity and the AKS
 Kubernetes identity are separate concerns.
 
 ## `kubelogin`, AKS-managed Entra integration, and Azure RBAC
+
+For a standalone introduction, implementation examples, login modes and a
+troubleshooting runbook, see [`kubelogin-guide.md`](kubelogin-guide.md).
+
+### Why all three are needed
+
+These components solve three different parts of one Kubernetes API request:
+
+| Component | Responsibility | Question answered |
+| --- | --- | --- |
+| AKS-managed Entra integration | Identity and token validation | Who is making this request? |
+| `kubelogin` | Obtaining and refreshing the client token | How does `kubectl` obtain proof of that identity? |
+| Azure RBAC for Kubernetes Authorization | Permission evaluation | What may that identity do in this cluster or namespace? |
+
+They are complementary rather than alternatives. Entra integration without an
+authorization model can identify a caller but does not define which Kubernetes
+actions the caller may perform. Azure RBAC cannot authorize a Kubernetes caller
+unless AKS first has a verified identity. `kubelogin` does not grant access at
+all; it only supplies the short-lived Entra token used during authentication.
+
+The complete interactive request flow is:
+
+```text
+Operator signs in with az login
+        |
+        v
+kubectl reads the kubeconfig exec section
+        |
+        v
+kubelogin obtains an Entra access token from the Azure CLI session
+        |
+        v
+kubectl sends HTTPS request + bearer token to the AKS API server
+        |
+        v
+AKS-managed Entra validates token, tenant, audience and identity
+        |
+        v
+Azure RBAC checks role assignments at cluster/namespace scope
+        |
+        +-- allowed  -> Kubernetes API performs the operation
+        `-- denied   -> Kubernetes API returns Forbidden (HTTP 403)
+```
+
+For pipeline Terraform and Helm operations, the flow is similar. The Azure
+DevOps service connection signs Azure CLI in as its service principal;
+`kubelogin` uses that Azure CLI session; and the Helm provider presents the
+resulting token to AKS. Azure RBAC then evaluates the service principal's AKS
+role assignment.
+
+### Why the old pipeline appeared to need only a service principal
+
+The pipeline talks to two independent APIs:
+
+| API | Used by | Authentication before migration |
+| --- | --- | --- |
+| Azure Resource Manager (`management.azure.com`) | Terraform AzureRM provider and Azure CLI | Azure DevOps service principal |
+| Kubernetes API (`dev-cluster` endpoint) | Helm provider and `kubectl` | AKS-issued client certificate and private key |
+
+The service principal authenticated Terraform to Azure Resource Manager. That
+allowed Terraform to read and modify the AKS Azure resource. It did not by
+itself authenticate the Helm provider to the Kubernetes API.
+
+The current Terraform configuration fills that second gap with these values
+from the AKS resource:
+
+```hcl
+client_certificate = base64decode(module.aks.kube_config_client_certificate)
+client_key         = base64decode(module.aks.kube_config_client_key)
+```
+
+Consequently, the Kubernetes API sees the identity represented by the cluster
+certificate, not the Azure DevOps service principal. The service principal is
+how the pipeline reaches Azure and obtains the cluster information; the client
+certificate is the separate credential that authorizes the Helm/Kubernetes
+connection. Azure DevOps tasks can hide this distinction, which makes the
+pipeline look as if one service-principal login handled both APIs.
+
+The migration removes that hidden second identity:
+
+```text
+Before
+------
+Service principal -> Azure Resource Manager
+AKS client certificate -> Kubernetes API
+
+After
+-----
+Service principal -> Azure Resource Manager
+Same service principal, represented by short-lived Entra token -> Kubernetes API
+```
+
+`kubelogin` is the adapter that obtains the second API's token for the already
+authenticated service-principal identity. It does not introduce another
+principal or another permission layer.
+
+This requirement is not caused by MDP. A self-hosted agent using the same
+managed-Entra design would also need `kubelogin` or another compatible Entra
+exec-credential provider. MDP only means the executable must be present in the
+custom image or installed for each ephemeral job.
+
+### Why replace cluster certificates
+
+The previous kubeconfig contained a client certificate and private key that
+acted as a powerful cluster credential. Whoever copied that credential could
+use it until it expired or was rotated. It was not naturally tied to the user's
+Entra lifecycle, group membership, MFA, or Conditional Access session.
+
+The target identity-based model provides:
+
+- Short-lived tokens instead of reusable cluster-admin certificate material.
+- Immediate control through Entra account and group lifecycle.
+- Separate identities and role assignments for humans and pipelines.
+- Better attribution in authentication and audit records.
+- Azure scope inheritance and namespace-scoped role assignments.
+- A familiar least-privilege model consistent with other Azure resources.
+
+Setting `local_account_disabled = true` is the final enforcement step. Managed
+Entra integration can be enabled while local certificate accounts remain
+available, but that would leave a path around the intended identity model. The
+two-step rollout retains the certificate only long enough to validate Entra and
+Azure RBAC before removing that fallback.
+
+`az aks get-credentials` deserves a separate distinction: it writes the API
+endpoint, cluster CA and authentication instructions into kubeconfig. It does
+not by itself make the caller a Kubernetes administrator. The caller still
+needs a valid Entra sign-in and an Azure RBAC role that permits the requested
+operation.
 
 ### AKS-managed Entra integration
 
@@ -271,7 +398,7 @@ can receive the required role directly. The organization-grade pattern is to
 assign roles to Entra groups rather than individual users and reserve
 cluster-admin access for tightly controlled emergency use.
 
-The AKS resource will be configured in this direction:
+The AKS resource is configured in this direction:
 
 ```hcl
 resource "azurerm_kubernetes_cluster" "this" {
@@ -284,10 +411,9 @@ resource "azurerm_kubernetes_cluster" "this" {
 }
 ```
 
-This block becomes the active design after the next infrastructure change is
-applied. The migration must also include role assignments and updated
-Terraform/Helm authentication; changing only this block can lock out operators
-and automation.
+This block is accompanied by explicit operator and pipeline role assignments.
+The Helm provider uses `kubelogin`, and local AKS accounts are disabled after
+the second apply so certificates cannot bypass the Entra and Azure RBAC model.
 
 ## ACR access from the management VM
 
@@ -457,9 +583,9 @@ Expect a private IP and, before login, an HTTP `401`. A public address indicates
 a private DNS link or record problem. A timeout with a private address indicates
 routing, NSG, endpoint, or service-health investigation is needed.
 
-## Next phase: managed Entra and Azure RBAC
+## Managed Entra and Azure RBAC migration record
 
-The migration completes the following work across two controlled applies:
+The migration contains the following work across two controlled applies:
 
 - Enable AKS-managed Entra integration.
 - Enable Azure RBAC for Kubernetes Authorization.
@@ -478,6 +604,6 @@ The migration completes the following work across two controlled applies:
 - Document and test a break-glass procedure.
 - Apply the change in a maintenance window and retain a rollback plan.
 
-After deployment, update the transition-state paragraph above, verify that the
-kubeconfig contains an Entra `exec` credential, and confirm that normal access
-works only through the intended Azure RBAC assignments.
+After the second apply, verify that `disableLocalAccounts` is `true`, kubeconfig
+contains an Entra `exec` credential, and normal access works only through the
+intended Azure RBAC assignments.
