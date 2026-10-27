@@ -9,7 +9,6 @@ metadata:
     appgw.ingress.kubernetes.io/backend-protocol: "http"
     appgw.ingress.kubernetes.io/request-timeout: "30"
     appgw.ingress.kubernetes.io/health-probe-path: "/live"
-    appgw.ingress.kubernetes.io/health-probe-port: "80"
     appgw.ingress.kubernetes.io/health-probe-status-codes: "200-399"
     appgw.ingress.kubernetes.io/health-probe-interval: "30"
     appgw.ingress.kubernetes.io/health-probe-timeout: "5"
