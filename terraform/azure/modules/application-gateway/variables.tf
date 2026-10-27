@@ -18,6 +18,11 @@ variable "subnet_id" {
   type        = string
 }
 
+variable "private_link_subnet_id" {
+  description = "Resource ID of the dedicated subnet used by the Application Gateway Private Link configuration"
+  type        = string
+}
+
 variable "private_ip_address" {
   description = "Static private frontend address for Application Gateway"
   type        = string

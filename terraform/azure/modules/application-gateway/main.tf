@@ -59,7 +59,7 @@ resource "azurerm_application_gateway" "this" {
 
     ip_configuration {
       name                          = "primary"
-      subnet_id                     = var.subnet_id
+      subnet_id                     = var.private_link_subnet_id
       private_ip_address_allocation = "Dynamic"
       primary                       = true
     }

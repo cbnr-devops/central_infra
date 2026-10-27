@@ -34,11 +34,12 @@ module "management_host" {
 module "application_gateway" {
   source = "../../modules/application-gateway"
 
-  name_prefix         = "central-dev"
-  location            = module.resource_group.location
-  resource_group_name = module.resource_group.name
-  subnet_id           = module.vnet.application_gateway_subnet_id
-  private_ip_address  = "10.0.6.10"
+  name_prefix            = "central-dev"
+  location               = module.resource_group.location
+  resource_group_name    = module.resource_group.name
+  subnet_id              = module.vnet.application_gateway_subnet_id
+  private_link_subnet_id = module.vnet.application_gateway_private_link_subnet_id
+  private_ip_address     = "10.0.6.10"
 
   tags = {
     Environment = "dev"
