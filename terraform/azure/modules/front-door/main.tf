@@ -45,7 +45,7 @@ resource "azurerm_cdn_frontdoor_origin" "application_gateway" {
   name                           = local.origin_name
   cdn_frontdoor_origin_group_id  = azurerm_cdn_frontdoor_origin_group.this.id
   enabled                        = true
-  certificate_name_check_enabled = false
+  certificate_name_check_enabled = true
   host_name                      = var.application_gateway_private_ip
   origin_host_header             = var.application_gateway_private_ip
   http_port                      = 80
