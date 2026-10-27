@@ -18,15 +18,15 @@ spec:
   rules:
     - http:
         paths:
-          - path: /solar
-            pathType: Prefix
+          - path: /solar/*
+            pathType: ImplementationSpecific
             backend:
               service:
                 name: solar-system-service
                 port:
                   number: 80
-          - path: /starfleet
-            pathType: Prefix
+          - path: /starfleet/*
+            pathType: ImplementationSpecific
             backend:
               service:
                 name: starship-fleet-service
