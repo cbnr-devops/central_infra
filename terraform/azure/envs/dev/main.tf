@@ -50,12 +50,13 @@ module "application_gateway" {
 module "front_door" {
   source = "../../modules/front-door"
 
-  name_prefix                    = "central-dev"
-  endpoint_name                  = "central-dev-sks-edge"
-  resource_group_name            = module.resource_group.name
-  location                       = module.resource_group.location
-  application_gateway_id         = module.application_gateway.id
-  application_gateway_private_ip = module.application_gateway.private_ip_address
+  name_prefix                                        = "central-dev"
+  endpoint_name                                      = "central-dev-sks-edge"
+  resource_group_name                                = module.resource_group.name
+  location                                           = module.resource_group.location
+  application_gateway_id                             = module.application_gateway.id
+  application_gateway_private_ip                     = module.application_gateway.private_ip_address
+  application_gateway_frontend_ip_configuration_name = module.application_gateway.private_frontend_ip_configuration_name
 
   tags = {
     Environment = "dev"

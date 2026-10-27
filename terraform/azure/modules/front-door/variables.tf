@@ -28,6 +28,11 @@ variable "application_gateway_private_ip" {
   type        = string
 }
 
+variable "application_gateway_frontend_ip_configuration_name" {
+  description = "Application Gateway frontend IP configuration exposed through Private Link"
+  type        = string
+}
+
 variable "tags" {
   description = "Tags applied to Azure Front Door resources that support tags"
   type        = map(string)

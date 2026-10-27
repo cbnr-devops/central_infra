@@ -12,3 +12,8 @@ output "private_ip_address" {
   description = "Private frontend IP address used by the AKS ingress"
   value       = var.private_ip_address
 }
+
+output "private_frontend_ip_configuration_name" {
+  description = "Frontend IP configuration exposed through Application Gateway Private Link"
+  value       = local.frontend_ip_configuration
+}

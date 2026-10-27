@@ -41,23 +41,35 @@ resource "azurerm_cdn_frontdoor_origin_group" "this" {
   }
 }
 
-resource "azurerm_cdn_frontdoor_origin" "application_gateway" {
-  name                           = local.origin_name
-  cdn_frontdoor_origin_group_id  = azurerm_cdn_frontdoor_origin_group.this.id
-  enabled                        = true
-  certificate_name_check_enabled = true
-  host_name                      = var.application_gateway_private_ip
-  origin_host_header             = var.application_gateway_private_ip
-  http_port                      = 80
-  https_port                     = 443
-  priority                       = 1
-  weight                         = 1000
+# Azure Front Door must use the name of the Application Gateway frontend IP
+# configuration as its Private Link group ID. The AzureRM origin resource only
+# accepts a fixed target_type list and cannot represent that value, so this one
+# resource is sent through the ARM API directly.
+resource "azapi_resource" "application_gateway" {
+  type      = "Microsoft.Cdn/profiles/originGroups/origins@2024-09-01"
+  name      = local.origin_name
+  parent_id = azurerm_cdn_frontdoor_origin_group.this.id
 
-  private_link {
-    location               = var.location
-    private_link_target_id = var.application_gateway_id
-    request_message        = "Azure Front Door access to the private Application Gateway origin"
-    target_type            = "Gateway"
+  body = {
+    properties = {
+      enabledState                = "Enabled"
+      enforceCertificateNameCheck = true
+      hostName                    = var.application_gateway_private_ip
+      originHostHeader            = var.application_gateway_private_ip
+      httpPort                    = 80
+      httpsPort                   = 443
+      priority                    = 1
+      weight                      = 1000
+
+      sharedPrivateLinkResource = {
+        privateLink = {
+          id = var.application_gateway_id
+        }
+        privateLinkLocation = var.location
+        groupId             = var.application_gateway_frontend_ip_configuration_name
+        requestMessage      = "Azure Front Door access to the private Application Gateway origin"
+      }
+    }
   }
 }
 
@@ -65,7 +77,7 @@ resource "azurerm_cdn_frontdoor_route" "this" {
   name                          = local.route_name
   cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.this.id
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.this.id
-  cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.application_gateway.id]
+  cdn_frontdoor_origin_ids      = [azapi_resource.application_gateway.id]
   enabled                       = true
 
   forwarding_protocol    = "HttpOnly"
