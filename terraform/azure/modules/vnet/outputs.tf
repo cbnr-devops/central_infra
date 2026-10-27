@@ -20,6 +20,11 @@ output "private_endpoint_subnet_id" {
   value = azurerm_subnet.private_endpoint.id
 }
 
+output "application_gateway_subnet_id" {
+  description = "Resource ID of the dedicated Application Gateway subnet"
+  value       = azurerm_subnet.application_gateway.id
+}
+
 output "nat_public_ip_address" {
   description = "Public egress IP address of the environment NAT Gateway"
   value       = azurerm_public_ip.nat.ip_address

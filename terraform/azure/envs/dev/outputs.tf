@@ -34,3 +34,23 @@ output "management_vm_private_ip" {
   description = "Private IP address of the management VM"
   value       = module.management_host.management_vm_private_ip
 }
+
+output "application_gateway_id" {
+  description = "Resource ID of the regional AKS ingress gateway"
+  value       = module.application_gateway.id
+}
+
+output "application_gateway_name" {
+  description = "Name of the regional AKS ingress gateway"
+  value       = module.application_gateway.name
+}
+
+output "application_gateway_private_ip" {
+  description = "Private frontend address to use when validating ingress routing"
+  value       = module.application_gateway.private_ip_address
+}
+
+output "agic_identity_object_id" {
+  description = "Managed identity object ID used by the AKS AGIC add-on"
+  value       = module.aks.agic_identity_object_id
+}

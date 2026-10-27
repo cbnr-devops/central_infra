@@ -57,6 +57,14 @@ resource "azurerm_kubernetes_cluster" "this" {
     labels_allowed      = null
   }
 
+  dynamic "ingress_application_gateway" {
+    for_each = var.application_gateway_id == null ? [] : [var.application_gateway_id]
+
+    content {
+      gateway_id = ingress_application_gateway.value
+    }
+  }
+
   lifecycle {
     ignore_changes = [
       default_node_pool[0].node_count,

@@ -31,6 +31,21 @@ module "management_host" {
   }
 }
 
+module "application_gateway" {
+  source = "../../modules/application-gateway"
+
+  name_prefix         = "central-dev"
+  location            = module.resource_group.location
+  resource_group_name = module.resource_group.name
+  subnet_id           = module.vnet.application_gateway_subnet_id
+  private_ip_address  = "10.0.6.10"
+
+  tags = {
+    Environment = "dev"
+    Project     = "central-infra"
+  }
+}
+
 module "aks" {
   source              = "../../modules/aks"
   env                 = "dev"
@@ -45,6 +60,31 @@ module "aks" {
     "${module.vnet.nat_public_ip_address}/32",
   ]
   log_analytics_workspace_id = azurerm_log_analytics_workspace.this.id
+  application_gateway_id     = module.application_gateway.id
+}
+
+resource "azurerm_role_assignment" "agic_application_gateway_contributor" {
+  scope                            = module.application_gateway.id
+  role_definition_name             = "Contributor"
+  principal_id                     = module.aks.agic_identity_object_id
+  principal_type                   = "ServicePrincipal"
+  skip_service_principal_aad_check = true
+}
+
+resource "azurerm_role_assignment" "agic_resource_group_reader" {
+  scope                            = module.resource_group.id
+  role_definition_name             = "Reader"
+  principal_id                     = module.aks.agic_identity_object_id
+  principal_type                   = "ServicePrincipal"
+  skip_service_principal_aad_check = true
+}
+
+resource "azurerm_role_assignment" "agic_application_gateway_subnet_network_contributor" {
+  scope                            = module.vnet.application_gateway_subnet_id
+  role_definition_name             = "Network Contributor"
+  principal_id                     = module.aks.agic_identity_object_id
+  principal_type                   = "ServicePrincipal"
+  skip_service_principal_aad_check = true
 }
 
 resource "azurerm_role_assignment" "management_operator_aks_cluster_user" {
@@ -121,6 +161,7 @@ resource "helm_release" "external_secrets" {
   create_namespace = true
   atomic           = true
   cleanup_on_fail  = true
+  upgrade_install  = true
   wait             = true
   timeout          = 600
 
@@ -139,6 +180,7 @@ resource "helm_release" "external_secrets_config" {
   create_namespace = true
   atomic           = true
   cleanup_on_fail  = true
+  upgrade_install  = true
   wait             = true
   timeout          = 300
 

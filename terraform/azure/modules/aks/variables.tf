@@ -45,3 +45,9 @@ variable "api_server_authorized_ip_ranges" {
   type        = list(string)
   default     = []
 }
+
+variable "application_gateway_id" {
+  description = "Existing Application Gateway resource ID managed by the AKS AGIC add-on"
+  type        = string
+  default     = null
+}

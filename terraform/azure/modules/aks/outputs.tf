@@ -27,3 +27,8 @@ output "kube_config_cluster_ca_certificate" {
   value       = azurerm_kubernetes_cluster.this.kube_config[0].cluster_ca_certificate
   sensitive   = true
 }
+
+output "agic_identity_object_id" {
+  description = "Object ID of the managed identity used by the AGIC add-on"
+  value       = try(azurerm_kubernetes_cluster.this.ingress_application_gateway[0].ingress_application_gateway_identity[0].object_id, null)
+}

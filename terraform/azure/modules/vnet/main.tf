@@ -68,3 +68,10 @@ resource "azurerm_subnet" "private_endpoint" {
 
   private_endpoint_network_policies = "Disabled"
 }
+
+resource "azurerm_subnet" "application_gateway" {
+  name                 = "application-gateway-subnet"
+  resource_group_name  = var.resource_group_name
+  virtual_network_name = azurerm_virtual_network.this.name
+  address_prefixes     = [cidrsubnet(var.vnet_cidr, 8, 6)]
+}
