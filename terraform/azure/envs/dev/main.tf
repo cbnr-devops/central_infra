@@ -46,6 +46,22 @@ module "application_gateway" {
   }
 }
 
+module "front_door" {
+  source = "../../modules/front-door"
+
+  name_prefix                    = "central-dev"
+  endpoint_name                  = "central-dev-sks-edge"
+  resource_group_name            = module.resource_group.name
+  location                       = module.resource_group.location
+  application_gateway_id         = module.application_gateway.id
+  application_gateway_private_ip = module.application_gateway.private_ip_address
+
+  tags = {
+    Environment = "dev"
+    Project     = "central-infra"
+  }
+}
+
 module "aks" {
   source              = "../../modules/aks"
   env                 = "dev"

@@ -1,6 +1,7 @@
 locals {
   gateway_name               = "${var.name_prefix}-appgw"
   frontend_ip_configuration  = "private-frontend"
+  private_link_configuration = "afd-private-link"
   frontend_port_name         = "http"
   backend_address_pool_name  = "bootstrap-backend-pool"
   backend_http_settings_name = "bootstrap-http-settings"
@@ -36,10 +37,11 @@ resource "azurerm_application_gateway" "this" {
   }
 
   frontend_ip_configuration {
-    name                          = local.frontend_ip_configuration
-    subnet_id                     = var.subnet_id
-    private_ip_address            = var.private_ip_address
-    private_ip_address_allocation = "Static"
+    name                            = local.frontend_ip_configuration
+    subnet_id                       = var.subnet_id
+    private_ip_address              = var.private_ip_address
+    private_ip_address_allocation   = "Static"
+    private_link_configuration_name = local.private_link_configuration
   }
 
   frontend_ip_configuration {
@@ -50,6 +52,17 @@ resource "azurerm_application_gateway" "this" {
   frontend_port {
     name = local.frontend_port_name
     port = 80
+  }
+
+  private_link_configuration {
+    name = local.private_link_configuration
+
+    ip_configuration {
+      name                          = "primary"
+      subnet_id                     = var.subnet_id
+      private_ip_address_allocation = "Dynamic"
+      primary                       = true
+    }
   }
 
   backend_address_pool {

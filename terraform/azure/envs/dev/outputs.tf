@@ -54,3 +54,13 @@ output "agic_identity_object_id" {
   description = "Managed identity object ID used by the AKS AGIC add-on"
   value       = module.aks.agic_identity_object_id
 }
+
+output "front_door_endpoint_hostname" {
+  description = "Default Azure Front Door hostname for the public application entry point"
+  value       = module.front_door.endpoint_hostname
+}
+
+output "front_door_endpoint_url" {
+  description = "Default HTTPS URL for the public application entry point"
+  value       = module.front_door.endpoint_url
+}
