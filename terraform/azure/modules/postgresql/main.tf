@@ -7,8 +7,8 @@ resource "azurerm_postgresql_flexible_server" "this" {
   administrator_password = var.admin_password
   zone                   = "1"
 
-  sku_name   = "B_Standard_B1ms" 
-  storage_mb = 32768               
+  sku_name   = "B_Standard_B1ms"
+  storage_mb = 32768
 
   backup_retention_days = 7
   tags = {
@@ -56,4 +56,3 @@ resource "azurerm_private_dns_zone_virtual_network_link" "postgresql" {
   virtual_network_id    = var.vnet_id
   registration_enabled  = false
 }
-

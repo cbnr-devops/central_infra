@@ -17,25 +17,35 @@ variable "acr_repositories" {
 }
 
 variable "agent_vm_ips" {
-  description = "Public IPs of build agent VMs to whitelist on ACR"
+  description = "Temporary public IP allowlist retained during the ACR private endpoint cutover; set to an empty list after private connectivity is verified"
   type        = list(string)
   default     = []
 }
 
-variable "dev_vnet_resource_group_name" {
-  description = "Resource group where the dev VNet (and PE subnet) live"
+variable "pipeline_service_principal_object_id" {
+  description = "Microsoft Entra object ID of the Azure DevOps service connection principal"
   type        = string
-  default     = "central-dev-rg"
+
+  validation {
+    condition     = can(regex("^[0-9a-fA-F-]{36}$", var.pipeline_service_principal_object_id))
+    error_message = "pipeline_service_principal_object_id must be a UUID-formatted Microsoft Entra object ID."
+  }
 }
 
-variable "dev_vnet_name" {
-  description = "Name of the dev VNet that hosts the private endpoint subnet"
+variable "cicd_vnet_resource_group_name" {
+  description = "Resource group containing the Managed DevOps Pool VNet"
   type        = string
-  default     = "central-dev-vnet"
+  default     = "central-infra-cicd-rg"
 }
 
-variable "dev_private_endpoint_subnet_name" {
-  description = "Subnet name for ACR private endpoint NIC (from vnet module)"
+variable "cicd_vnet_name" {
+  description = "VNet used by the Managed DevOps Pool"
   type        = string
-  default     = "dev-pe-subnet"
+  default     = "central-cicd-vnet"
+}
+
+variable "cicd_private_endpoint_subnet_name" {
+  description = "Subnet in the CI/CD VNet reserved for private endpoints"
+  type        = string
+  default     = "private-endpoints-subnet"
 }

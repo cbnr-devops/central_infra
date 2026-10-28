@@ -11,10 +11,11 @@ resource "azurerm_virtual_network" "this" {
 }
 
 resource "azurerm_subnet" "private" {
-  name                 = "private-subnet"
-  resource_group_name  = var.resource_group_name
-  virtual_network_name = azurerm_virtual_network.this.name
-  address_prefixes     = [cidrsubnet(var.vnet_cidr, 8, 1)]
+  name                            = "private-subnet"
+  resource_group_name             = var.resource_group_name
+  virtual_network_name            = azurerm_virtual_network.this.name
+  address_prefixes                = [cidrsubnet(var.vnet_cidr, 8, 1)]
+  default_outbound_access_enabled = false
 }
 
 resource "azurerm_subnet" "public" {
@@ -66,4 +67,20 @@ resource "azurerm_subnet" "private_endpoint" {
   address_prefixes     = [cidrsubnet(var.vnet_cidr, 8, 3)]
 
   private_endpoint_network_policies = "Disabled"
+}
+
+resource "azurerm_subnet" "application_gateway" {
+  name                                          = "application-gateway-subnet"
+  resource_group_name                           = var.resource_group_name
+  virtual_network_name                          = azurerm_virtual_network.this.name
+  address_prefixes                              = [cidrsubnet(var.vnet_cidr, 8, 6)]
+  private_link_service_network_policies_enabled = false
+}
+
+resource "azurerm_subnet" "application_gateway_private_link" {
+  name                                          = "application-gateway-private-link-subnet"
+  resource_group_name                           = var.resource_group_name
+  virtual_network_name                          = azurerm_virtual_network.this.name
+  address_prefixes                              = [cidrsubnet(var.vnet_cidr, 8, 7)]
+  private_link_service_network_policies_enabled = false
 }

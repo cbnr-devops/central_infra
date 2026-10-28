@@ -1,5 +1,5 @@
-trigger:
-  - '*'
+trigger: none
+pr: none
 
 resources:
   repositories:
@@ -26,74 +26,63 @@ parameters:
       - shared
       - staging
       - all
-  
+
   - name: environments
     type: object
     default:
       - name: shared
-        dependsOn: TerraformValidate
       - name: dev
-        dependsOn: TerraformApplyshared
       - name: staging
-        dependsOn: TerraformApplydev
 
 variables:
   basePath: "terraform/${{ parameters.cloud }}/envs"
+  TF_PLUGIN_CACHE_DIR: "$(Pipeline.Workspace)/.terraform.d/plugin-cache"
 
 stages:
-  - stage: Checkout
-    displayName: Checkout Code
+  - stage: Terraform
+    displayName: Terraform Checks and Apply
     jobs:
-      - job: Checkout
+      - job: Terraform
+        displayName: Terraform Checks and Apply
         pool:
-          name: "sample-project"
+          name: "central-infra-mdp"
+          demands:
+            - ImageOverride -equals central-custom-linux
+        workspace:
+          clean: all
         steps:
           - template: templates/checkout.yml@templates
-  
-  - stage: TerraformFormat
-    displayName: Terraform Format Check
-    dependsOn: Checkout
-    condition: succeeded()
-    jobs:
-      - job: Format
-        pool:
-          name: "sample-project"
-        steps:
-          - template: templates/checkout.yml@templates
-          - script: |
-              terraform fmt -check -recursive $(basePath)
+
+          - bash: |
+              set -euo pipefail
+
+              if command -v kubelogin >/dev/null 2>&1; then
+                kubelogin --version
+                exit 0
+              fi
+
+              tool_dir="$(Agent.TempDirectory)/aks-tools"
+              mkdir -p "${tool_dir}"
+              az aks install-cli \
+                --install-location "${tool_dir}/kubectl" \
+                --kubelogin-install-location "${tool_dir}/kubelogin"
+              echo "##vso[task.prependpath]${tool_dir}"
+            displayName: Prepare kubelogin
+
+          - bash: mkdir -p "$TF_PLUGIN_CACHE_DIR"
+            displayName: Prepare Terraform provider cache
+
+          - script: terraform fmt -check -recursive $(basePath)
             displayName: Terraform Format Check
 
-  - stage: TerraformValidate
-    displayName: Terraform Validate
-    dependsOn: TerraformFormat
-    condition: succeeded()
-    jobs:
-      - ${{ each item in parameters.environments }}:
-        - job: Validate${{ item.name }}
-          displayName: Validate - ${{ upper(item.name) }}
-          pool:
-            name: "sample-project"
-          steps:
-            - template: templates/checkout.yml@templates
-            - template: templates/terraform-validate.yml@templates
-              parameters:
-                workingDir: $(basePath)/${{ item.name }}
-
-  - ${{ each item in parameters.environments }}:
-      - stage: TerraformApply${{ item.name }}
-        displayName: Terraform Apply - ${{ upper(item.name) }}
-        dependsOn: ${{ item.dependsOn }}
-        condition: >-
-          and(
-            in(dependencies['${{ item.dependsOn }}'].result, 'Succeeded', 'Skipped'),
-            or(eq('${{ parameters.env }}', '${{ item.name }}'), eq('${{ parameters.env }}', 'all'))
-          )
-        jobs:
-          - job: Apply${{ item.name }}
-            pool:
-              name: "sample-project"
-            steps:
-              - template: templates/terraform-apply.yml@templates
+          - ${{ each item in parameters.environments }}:
+              - template: templates/terraform-validate.yml@templates
                 parameters:
                   workingDir: $(basePath)/${{ item.name }}
+
+          # Apply one selected root, or all roots sequentially in list order.
+          - ${{ each item in parameters.environments }}:
+              - ${{ if or(eq(parameters.env, item.name), eq(parameters.env, 'all')) }}:
+                  - template: templates/terraform-apply.yml@templates
+                    parameters:
+                      workingDir: $(basePath)/${{ item.name }}
